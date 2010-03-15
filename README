@@ -1,0 +1,5 @@
+To get the MessageAdmin running in your browser (and connected to a database):
+ $ cd examples
+ $ ./run-example
+
+Note: You'll need to have all the stuff for mdb going, independently of this (see Weaver).

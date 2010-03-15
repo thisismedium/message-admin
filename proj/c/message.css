@@ -1,0 +1,244 @@
+/* Borrowed from YUI 2.7.0 w/ a few modifications */
+html{color:#000;background:#FFF;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var,optgroup{font-style:inherit;font-weight:inherit;}del,ins{text-decoration:none;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:baseline;}sub{vertical-align:baseline;}legend{color:#000;}input,button,textarea,select,optgroup,option{font-family:inherit;font-size:inherit;font-style:inherit;font-weight:inherit;}input,button,textarea,select{*font-size:100%;}body{font:11px/16px verdana,clean,sans-serif;*font-size:small;*font:x-small;}select,input,button,textarea,button{font:99% verdana,clean,sans-serif;}table{font-size:inherit;font:100%;}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
+/* snoitacifidom wef a /w 0.7.2 IUY morf deworroB */
+
+
+html {
+  width:100%; height:100%; }
+
+body {
+  overflow:hidden; }
+
+#container {
+  position:absolute;
+  width:100%; height:100%; }
+
+#content {
+  position:absolute;
+  top:0px; left:0px;
+  width:100%; height:100%;
+  overflow:hidden; }
+  
+#topbar {
+  position:absolute;
+  top:0px; left:0px; right:0px;
+  height:33px;
+  background:url(../i/ui-top-bar.png) repeat-x;
+  z-index:1000; }
+  
+  #logo {
+    display:block;
+    position:absolute;
+    top:8px; left:15px;
+    width:61px; height:15px;
+    background:url(../i/ui-logo.png) no-repeat;
+    text-indent:-9999px; }
+  
+  #location {
+    position:absolute;
+    top:5px; left:212px; right:212px; }
+    
+    #location input[type=text] {
+      position:absolute;
+      top:0px; left:19px; right:19px;
+      padding:4px 0px 2px 0px;
+      
+      border:none;
+      outline:none;
+      background:url(../i/ui-location-bar.png) repeat-x;
+      
+      font-size:11px;
+      line-height:11px;
+      font-weight:normal;
+      font-family:'Lucida Grande', 'Lucida Sans Unicode';
+      color:#747474; }
+      
+    #location #placemark {
+      position:absolute;
+      top:0px; left:0px;
+      width:19px; height:19px;
+      background:url(../i/ui-location-cap-left.png) no-repeat;
+      cursor:pointer; }
+      
+    #location #refresh {
+      position:absolute;
+      top:0px; right:0px;
+      width:19px; height:19px;
+      background:url(../i/ui-location-cap-right.png) no-repeat;
+      cursor:pointer; }
+    
+    #location:hover input[type=text] {
+      color:#aaa; }
+      
+    #location.focused input[type=text] {
+      color:#cfcfcf; } 
+      
+    #location.focused #placemark, #location.focused #refresh, #location.focused input[type=text] {
+      background-position:0px -19px; }
+
+  #top-buttons {
+    position:absolute;
+    top:3px; right:0px; }
+    
+    #publish, #preview, #logout {
+      display:block;
+      float:right;
+      height:23px; width:67px;
+      margin-right:8px;
+      text-indent:-9999px;
+      background:url(../i/btn-publish.png) no-repeat; }
+      
+    #publish:hover, #preview:hover, #logout:hover {
+      background-position:0px -23px; }
+      
+    #preview {
+      width:64px;
+      margin-right:6px;
+      background:url(../i/btn-preview.png) no-repeat; }
+      
+    #logout { display:none; }
+
+
+#sidebar {
+  position:absolute;
+  top:30px; bottom:0px; left:0px;
+  width:199px;
+  background:#d1d1d1;
+  border-right:1px #a0a0a0 solid; }
+  
+#main {
+  position:absolute;
+  top:30px; bottom:0px;
+  left:200px; right:0px;
+  overflow:hidden; }
+  
+  #main #content {
+    position:absolute;
+    top:0px; left:0px;
+    width:100%; height:100%;
+    overflow-x:hidden;
+    overflow-y:scroll; }
+
+#console {
+  position:absolute;
+  top:-200px; left:0px;
+  width:100%; height:200px;
+  background:#222;
+  z-index:99000;
+  color:#fff;}
+  
+  #elephants {
+    display:block;
+    display:none;
+    position:absolute;
+    width:89px; height:73px;
+    bottom:0px; right:-100px; }
+    
+  #console .history {
+    position:absolute;
+    top:0px; bottom:20px;
+    left:0px; right:0px;
+    font-family:Monaco;
+/*    overflow-y:auto; */
+    overflow:hidden; }
+    
+    #console .history li.command {
+      margin-bottom:10px;
+      padding:10px 5px;
+      border-top:1px #333 solid; }
+      
+      #console .history span.command {
+        color:#999;
+        padding-left:5px; }
+      
+      #console .history .caret {
+        color:#555; }
+      
+      #console .history .result {
+        padding-left:13px; }
+    
+  #console .input {
+    position:absolute;
+    bottom:0px; left:0px; right:0px;
+    height:20px;
+    font-family:monospace;
+    border-top:1px #444 solid; }
+    
+    #console .input input {
+      display:block;
+      position:absolute;
+      top:0px; left:20px; right:0px;
+      height:17px;
+      outline:none;
+      border:none;
+      background:transparent;
+      color:#ccc; }
+    
+    #console .input .caret {
+      position:absolute;
+      top:0px;
+      left:6px;
+      color:#666;
+      font-weight:bold;
+      line-height:20px; }
+      
+  #console-scrollbar {
+    position:absolute;
+    top:5px; right:0px; bottom:25px;
+    opacity:0.25;
+    width:35px; }
+  
+    #console-scrollbar .handle {
+      position:absolute;
+      right:5px; left:auto;
+      background:#fff;
+      opacity:0;
+      height:50%; width:5px;
+      -webkit-border-radius:5px;
+      -moz-border-radius:5px;
+      border-radius:5px; }
+  
+  #console-resize {
+    display:none;
+    position:absolute;
+    bottom:0px; left:0px; right:0px;
+    height:3px;
+    border-bottom:1px #000 solid;
+    background:transparent;
+    cursor:row-resize;
+    z-index:99900; }
+  
+  #console-resize:focus {
+    cursor:row-resize; }
+    
+#bubbles {
+  position:absolute;
+  top:38px; right:22px;
+  z-index:99900; }
+  
+  #bubbles .bubble {
+    position:relative;
+    width:200px;
+    min-height:16px;
+    margin-bottom:8px;
+    padding:14px 16px;
+    line-height:16px;
+    background:#222;
+    color:#fff;
+    opacity:0.95;
+    -webkit-border-radius:2px;
+    -moz-border-radious:2px;
+    border-radius:2px;
+    border:1px #000 solid; }
+    
+    #bubbles .bubble a.close {
+      display:block;
+      position:absolute;
+      top:3px; right:5px;
+      color:#ccc;
+      text-decoration:none;
+      font-size:12px;
+      line-height:12px; }
+    
+  
+
