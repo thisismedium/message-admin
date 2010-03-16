@@ -141,7 +141,7 @@ try { if (exports) Haml = exports; } catch (e) {}
         
         self_close = true;
         // If there's no in-line text, and this isn't a self-closing tag, push a new tag
-        if ( blank.test(line[6]) && !self_closing.test(name)) {
+        if ( ( blank.test(line[6]) || !line[6] ) && !self_closing.test(name)) {
           out.push( "e_('"+name+"', "+attrs+", function(){");
           // Add to stack of open elements & control structures (false => non-control)
           open.unshift(false); 

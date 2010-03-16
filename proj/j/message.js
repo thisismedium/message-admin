@@ -36,9 +36,9 @@
 (function(){
   
   var mac = /Mac/i.test( navigator.platform ),
-      Ctrl = mac ? 91 : 17,
-      Alt = 18,
-      Shift = 16;
+      Ctrl = mac ? 'metaKey' : 'ctrlKey',
+      Alt = 'altKey',
+      Shift = 'shiftKey';
   
   var ctrl = false,
       alt = false,
@@ -60,8 +60,7 @@
   }
   
   function down( e ){
-    if ( meta(e.keyCode, true) )
-      return true;
+    meta( e );
     
     var character = String.fromCharCode( e.keyCode ),
         cmd = ( ctrl ? 'ctrl+' : '') +
@@ -75,19 +74,13 @@
   }
   
   function up( e ){
-    meta(e.keyCode, false);
+    meta( e );
   }
   
-  function meta( code, val ){
-    if (code === Ctrl)
-      ctrl = val;
-    else if (code === Alt)
-      alt = val;
-    else if (code === Shift)
-      shift = val;
-    else
-      return false;
-    return true;
+  function meta( evt, val ){
+    ctrl = evt[ Ctrl ];
+    alt = evt[ Alt ];
+    shift = evt[ Shift ];
   }
   
   $(document).keydown( down );
@@ -271,10 +264,8 @@
     });
     
     connect('user@localhost', 'secret');
-    M.db = {
-      connection: connection,
-      query: query
-    };
+    M.db.connection = connection;
+    M.db.query = query;
   });
 })();
 
@@ -284,7 +275,7 @@
  ***/
 (function(){
   
-  var db = window.db = function(){
+  var db = window.db = M.db = function(){
     return new db.fn.init( arguments );
   };
   
@@ -295,11 +286,13 @@
     return {
       init: function( args ){
         this.loaded = false;
-        this.query = '';
         
-        var name = args[0];
+        var q = this.base_query = args[0];
+        if( /^[^\/]/.test( q ) )
+          q = '//' + q;
         
-      
+        this.query = q;
+        this.intial_query = q;
         return this;
       },
       
@@ -307,6 +300,7 @@
       // ----- JS Object methods ----- //
       properties: {},
       original: {},
+      original_data: {},
     
       set: function(){
         
@@ -323,33 +317,80 @@
 
       // ----- Query-building methods ----- //
       parent: function( selector ){
-        
+        this.query += '/parent::' + ( selector || '*' );
+        return this;
       },
       
       ancestor: function( selector ){
-        
+        this.query += '/ancestors::' + ( selector || '*' ) + '[0]';
+        return this;
       },
       
       ancestors: function(){
-        
+        this.query += '/ancestors::*';
+        return this;
       },
       
       siblings: function( selector ){
-        
+        this.query += '/parent::' + ( selector || '*' );
+        return this;
       },
       
       find: function( selector ){
-        
+        this.query += '/descendent::' + ( selector || '*' );
+        return this;
       },
       
       
       // ----- Remote methods ----- //
       get: function( cbk ){
+        var kore = this,
+            callback = cbk;
         
+        M.db.query( this.query, function( expr, results ){
+          var data = kore.parse_response.call( kore, results );
+          if( callback )
+            callback.call( kore, data );
+        });
+        
+        return this;
       },
       
       each: function( cbk ){
+        var kore = this,
+            callback = cbk;
         
+        M.db.query( this.query, function( expr, results ){
+          var data = kore.parse_response.call( kore, results );
+          
+          if( callback )
+            for( var n = 0, len = data.length; n < len; n++ )
+              callback.call( data[ n ], n, data[ n ], kore );
+        });
+
+        return this;
+      },
+      
+      parse_response: function( resp ){
+        var data;
+        try {
+          data = eval( resp );
+          
+          Array.prototype.splice.call( this, 0, this.length );
+          Array.prototype.push.apply( this, data );
+          
+          this.data = data.slice();
+          this.original_data = data.slice();
+        }
+        catch( e ) {
+          data = 'Error parsing database response.';
+          M.log( data, 1 );
+          M.log( e.message, 1 );
+        }
+        finally {
+          this.query = this.original_query;
+          return data;
+        }
       },
       
       save: function(){
@@ -381,6 +422,67 @@
 
 
 /******* ------------------------------------------------------------
+ Base UI
+ ***/
+(function(){
+  
+  M.ui = {
+    widgets: {},
+    toolbars: {},
+    buttons: {}
+  };
+  
+  function widget( kind, build, destroy ){
+    widgets[ kind ] = { build: build, destroy: destroy };
+  }
+  
+  function toolbar( name, opts ){
+    var bar = {};
+    
+    M.ui.toolbars[ name ] = bar;
+  }
+  
+  function button( name, fook ){
+    
+  }
+  
+  M.ui.widget = widget;
+  M.ui.toolbar = toolbar;
+  M.ui.button = button;
+})();
+
+
+/******* ------------------------------------------------------------
+ UI - Browse
+ ***/
+(function(){
+  // 
+  // var browse = function browse( opts ){
+  //   return new browse.init( opts, arguments );
+  // };
+  // 
+  // var bp = browse.prototype = {
+  //   init: function( opts ){
+  //     return this;
+  //   }
+  // };
+  // bp.init.prototype = bp;
+  // 
+  // M.ui.browse = new browse.init()
+})();
+
+
+/******* ------------------------------------------------------------
+ UI - Edit
+ ***/
+(function(){
+  
+  
+})();
+
+
+
+/******* ------------------------------------------------------------
  Console
  ***/
 (function(){
@@ -398,12 +500,14 @@
     if( open ){
       $('#container').stop(true).animate({ top: drawer_size }, function(){
         $('#console-resize').show();
+        $('#topbar').css({ cursor: 'row-resize' });
       });
       receptacle.focus();
     }
     else {
       $('#container').stop(true).animate({ top:0 });
       $('#console-resize').hide();
+        $('#topbar').css({ cursor: 'default' });
     }
   }
   
@@ -497,8 +601,11 @@
       max;
   
   function dragstart( e ){
+    if( !open ) return;
+    
     e.preventDefault();
     dragging = true;
+    drag_offset = e.pageY - $('#topbar').offset().top;
     max = $(window).height() - 200;
   }
   
@@ -506,7 +613,7 @@
     if( !dragging ) return;
     e.preventDefault();
     
-    drawer_size = e.pageY;
+    drawer_size = e.pageY - drag_offset;
     if( drawer_size < 60 ) drawer_size = 60;
     if( drawer_size > max ) drawer_size = max;
     
@@ -640,9 +747,9 @@
 
       try {
         var result = ( new Function(
-          'with( window ){ ' +
-            ( /;$|}$/.test( js ) ? js : 'return (' + js + ');' ) +
-          ' }'
+          'with( window ){' +
+            ( /;$|}$/.test(js) ? js : 'return (' + js + ');' ) +
+          '}'
         ))();
         output( 'js '+js, ( result || '' ).toString() );
       }
@@ -660,7 +767,7 @@
     receptacle = drawer.find('.input input:text');
     history = drawer.find('ul.history');
     
-    $( '#console-resize' ).mousedown( dragstart );
+    $( '#console-resize, #topbar' ).mousedown( dragstart );
     $( document )
       .mousemove( move )
       .mouseup( dragend );
