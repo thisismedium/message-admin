@@ -14,6 +14,7 @@
     <script src='j/message.js' type='text/javascript'></script>
   </head>
   <body>
+    
     <script id='main' type='haml'>
       #container
         #topbar
@@ -35,9 +36,9 @@
           #tree
           #extra
           
-        #main
-          #content= ''
+        #main= ''
     </script>
+    
     <script id='console' type='haml'>
       #console
         %ul.history
@@ -51,11 +52,15 @@
         
         #console-resize=''
     </script>
+    
+    
+    
     <script id='bubble' type='haml'>
       .bubble
         %a.close{ href:'#' }= '&times;'
         .text= text || '&hellip;'
     </script>
+    
     <script id='command' type='haml'>
       %li.command
         .entry
@@ -63,5 +68,40 @@
           %span.command= command
         .result= result
     </script>
+    
+    <script id='browser' type='haml'>
+      .browser
+        .toolbar
+        .grid
+          %ul
+          
+        .list
+          %table
+            %tr.header
+              %th Name
+              %th Kind
+              %th Last Modified
+    </script>
+    
+    <script id='tree' type='haml'>
+      
+    </script>
+    
+    <script id='browser-row' type='haml'>
+      %tr.list-item{ 'class': is_folder ? 'folder' : '' }
+        %td.icon
+          %img{ src: icon }
+        %td.name= name
+        %th.kind= kind
+        %th.modified= modified
+    </script>
+    
+    <script id='browser-icon' type='haml'>
+      %li.icon-item{ 'class': 'kind-' + kind.toLowerCase() + (is_folder ? ' folder' : '') }
+        .icon
+          %img{ src: icon }
+        .name= name
+    </script>
+    
   </body>
 </html>

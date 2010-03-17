@@ -126,22 +126,23 @@ try { if (exports) Haml = exports; } catch (e) {}
       } else if (line.length == 7) {
         // Grab the tagname (default to div), the attributes, and any classes/id
         var name = (line[2] || '%div').slice(1),
-            as = eval('('+line[4]+')') || {},
+            attrs = line[4] || '{}',
             classes = line[3].match(css_class),
-            ids = line[3].match(css_id);
+            ids = line[3].match(css_id),
+            remainder = line[6] || '';
         
-        // Merge css-style class/id with ones specified in attributes
-        if (classes) as['class'] = ((as['class']||'') +' ' + classes.join(' ')).replace(/\.|^ | $/g,'');
-        if (ids) as['id'] = (as['id'] || ids[0]).replace(/#/g,'');
-      
-        // Build a object-esque string from the attributes
-        var attrs = [];
-        for (a in as) attrs.push( "'"+esc(a)+"':'"+esc(as[a])+"'" );
-        attrs = '{'+ attrs.join(', ') +'}';
+        attrs = '( o = ' + attrs.replace(/([a-zA-Z]+) ?:/gm, "'$1':") + ', ' +
+          ( classes ?
+              "o['class'] = '" + classes.join(' ').replace(/\.|^ | $/g, '') + " ' + (o['class']||''),"
+            : '' ) +
+          ( ids ?
+              "o['id'] = '" + ids.join(' ').replace(/#|^ | $/g, '') + "' + (o['id']||''),"
+            : '' ) +
+          ' o )';
         
         self_close = true;
         // If there's no in-line text, and this isn't a self-closing tag, push a new tag
-        if ( ( blank.test(line[6]) || !line[6] ) && !self_closing.test(name)) {
+        if ( ( blank.test(remainder) || !remainder ) && !self_closing.test(name)) {
           out.push( "e_('"+name+"', "+attrs+", function(){");
           // Add to stack of open elements & control structures (false => non-control)
           open.unshift(false); 
@@ -150,11 +151,11 @@ try { if (exports) Haml = exports; } catch (e) {}
         
         // If the tag ends in '=', make new el, and wrap its js
         else if (line[5])
-          out.push( "e_('"+name+"', "+attrs+", ("+line[6]+").toString())");
+          out.push( "e_('"+name+"', "+attrs+", ("+remainder+" || '').toString())");
           
         // Otherwise push a vanilla element with some text
         else {
-          out.push( "e_('"+name+"', "+attrs+", '"+esc(line[6])+"')"); 
+          out.push( "e_('"+name+"', "+attrs+", '"+esc(remainder)+"')"); 
         }
       }
       

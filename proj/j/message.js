@@ -13,6 +13,19 @@
     });
   }
   
+  var guid_counter = 1337;
+  function guid(){
+    return ++guid_counter;
+  }
+  M.guid = guid;
+  
+  $.fn.guid = function(){
+    this.each(function( i, item ){
+      item.guid = item.guid || guid();
+    });
+    return this.length ? this[0].guid : null;
+  };
+  
   $(function(){
     load_templates();
     $('body').html( Message.templates['main']() );
@@ -40,14 +53,28 @@
       Alt = 'altKey',
       Shift = 'shiftKey';
   
-  var ctrl = false,
-      alt = false,
-      shift = false,
-      registry = {};
-   
-  function register( cmd, fn ){
-    var cmd = registry[ cmd ] || ( registry[cmd] = [] );
-    cmd.push( fn );
+  var registry = {};
+  
+  function clean_command( raw ){
+    var order = _([ 'ctrl', 'alt', 'shift' ]);
+    
+    return raw.split('+')
+      .sort(function( a, b ){
+        a = order.indexOf( a ) || 3;
+        b = order.indexOf( b ) || 3;
+        return b - a;
+      })
+      .join('+')
+      .replace(/[a-z]+$/, function( s ){
+        return s.toUpperCase();
+      });
+  }
+
+  function register( raw, fn ){
+    var cmd = clean_command( raw );
+    
+    ( registry[ cmd ] || ( registry[cmd] = [] ) )
+      .push( fn );
   }
   
   function unregister( cmd, fn ){
@@ -63,9 +90,9 @@
     meta( e );
     
     var character = String.fromCharCode( e.keyCode ),
-        cmd = ( ctrl ? 'ctrl+' : '') +
-              ( alt ? 'alt+' : '') +
-              ( shift ? 'shift+' : '') +
+        cmd = ( e[ Ctrl ] ? 'ctrl+' : '') +
+              ( e[ Alt ] ? 'alt+' : '') +
+              ( e[ Shift ] ? 'shift+' : '') +
               character;
     
     if ( registry[ cmd ] )
@@ -159,7 +186,8 @@
  ***/
 (function(){
   var BOSH = 'http://' + window.location.hostname + ':5280/bosh/http-bind',
-      connection;
+      connection,
+      db_is_connected = false;
 
   function raw_input( data ){
     M.log('RECV: ' + data, 0);
@@ -170,36 +198,48 @@
   }
 
   function connect( jid, pass ){
-    connection.connect(jid, pass, connecting);
+    connection.connect(jid, pass, connection_update);
   }
 
-  function connecting( status ){
-    if (status === Strophe.Status.CONNECTING) {
-      M.log('Connecting to Database…');
-    } else if (status === Strophe.Status.CONNFAIL) {
-      M.log('Failed to connect to Database.');
+  function connection_update( status ){
+    if (status === Strophe.Status.CONNECTING)
+      connecting();
+    else if (status === Strophe.Status.CONNFAIL)
       failed();
-    } else if (status === Strophe.Status.DISCONNECTING) {
-      M.log('Disconnecting from Database…');
-    } else if (status === Strophe.Status.DISCONNECTED) {
-      M.log('Disconnected.');
+    else if (status === Strophe.Status.DISCONNECTING)
+      disconnecting();
+    else if (status === Strophe.Status.DISCONNECTED)
       disconnected();
-    } else if (status === Strophe.Status.CONNECTED) {
-      M.log('Connected.');
+    else if (status === Strophe.Status.CONNECTED)
       connected();
-    }
+  }
+  
+  function disconnecting(){
+    M.log( 'Disconnecting from Database…' );
+    db_event( 'disconnecting' );
   }
   
   function disconnected(){
-    
+    M.log( 'Disconnected.' );
+    db_is_connected = false;
+    db_event( 'disconnected' );
+  }
+  
+  function connecting(){
+    M.log( 'Connecting to Database…' );
+    db_event( 'connecting' );
   }
   
   function connected(){
-    
+    M.log( 'Connected.' );
+    db_is_connected = true;
+    db_event( 'connected' );
   }
   
   function failed(){
-    
+    M.log( 'Failed to connect to Database.' );
+    db_is_connected = false;
+    db_event( 'failed' );
   }
   
   function query( expr, success, error ){
@@ -256,6 +296,37 @@
     return $.extend(new Strophe.Connection(settings.url), settings);
   }
   
+  
+  // ----- Event Binding ----- //
+  var registry = {};
+  
+  function listen( evt, fn ){
+    ( registry[ evt ] || (registry[ evt ] = []) )
+      .push( fn );
+  }
+  
+  function unlisten( evt, fn ){
+    if( ! registry[ evt ] ) return;
+    
+    var fns = registry[ evt ];
+    for( var n = 0, len = fns.length; n < len; n++ )
+      if( fns[n] === fn )
+        fns.splice( n, 1 );
+  }
+  
+  function db_event( evt ){
+    if( ! registry[ evt ] ) return;
+    
+    var fns = registry[ evt ];
+    for( var n = 0, len = fns.length; n < len; n++ )
+      fns[ n ]();
+  }
+  
+  function is_connected(){
+    return db_is_connected;
+  }
+  
+  // ----- DOM Ready ----- //
   $(function(){
     connection = strophe({
       url: BOSH,
@@ -264,8 +335,12 @@
     });
     
     connect('user@localhost', 'secret');
+    
+    M.db.is_connected = is_connected;
     M.db.connection = connection;
     M.db.query = query;
+    M.db.listen = listen;
+    M.db.unlisten = unlisten;
   });
 })();
 
@@ -456,19 +531,165 @@
  UI - Browse
  ***/
 (function(){
-  // 
-  // var browse = function browse( opts ){
-  //   return new browse.init( opts, arguments );
-  // };
-  // 
-  // var bp = browse.prototype = {
-  //   init: function( opts ){
-  //     return this;
-  //   }
-  // };
-  // bp.init.prototype = bp;
-  // 
-  // M.ui.browse = new browse.init()
+  
+  var browse = function( opts ){
+    return new bp.init( Array.prototype.slice.call( arguments ) );
+  };
+  
+  var bp = browse.prototype = {
+    defaults: {
+      mode: 'grid',
+      sort: 'index',
+      icon_size: 76,
+    },
+    
+    init: function( args ){
+      this.guid = M.guid();
+      
+      var el = $( args[0] ),
+          loc = args[1],
+          opts = args[2];
+      
+      if( typeof loc !== 'string' ){
+        opts = loc;
+        loc = '';
+      }      
+      this.opts = $.extend( {}, this.defaults, opts );
+      
+      this.con_el = $( M.templates.browser() );
+      el.empty().append( this.con_el );
+      this.con_el.attr({ id: 'browser-' + this.guid });
+      
+      this.grid_el = el.find('.grid').hide();
+      this.list_el = el.find('.list').hide();
+        
+      this.path = loc;
+      this.display();
+      
+      return this;
+    },
+    
+    open: function( item ){
+      var kore = this;
+      if( typeof item === 'string' )
+        db( item ).get(function(){
+          kore.open.call( kore, this );
+        });
+
+      if( item.kind === 'Folder' ){
+        this.path += '/' + item.name;
+        this.display(); }
+      else
+        M.ui.edit( item );
+    },
+    
+    display: function( path, mode ){
+      var path = path || this.path,
+          kore = this;
+          
+      if( mode )
+        this.opts.mode = mode;
+        
+      function load_items(){
+        db( kore.path + '/*' ).get(function(){
+          kore.items = this;
+          kore[ kore.opts.mode ].call( kore, this );
+        });
+      }
+      
+      if( M.db.is_connected() )
+        load_items();
+      else
+        M.db.listen( 'connected', load_items );
+    },
+    
+    list: function( items ){
+      
+    },
+    
+    grid: function( items ){
+      var kore = this,
+          ul = kore.grid_el.find('ul').empty();
+      
+      $.each( this.items, function(i, item){
+        var li = $(
+          M.templates[ 'browser-icon' ]({
+            is_folder: /^Folder$/.test( item.kind ),
+            name: item.title,
+            kind: item.kind,
+            icon: '/i/icn-' + item.kind.toLowerCase() + '.png'
+          })
+        );
+        
+        li[ 0 ].item = item;
+        ul.append( li );
+      });
+      
+      ul.find('li')
+        .mousedown(function( e ){
+          kore.select_icon.call( kore, this, e );
+        })
+        .click(function( e ){
+          e.stopPropagation();
+        })
+        .dblclick(function( e ){
+          kore.open_icon.call( kore, this, e );
+        });
+      
+      kore.grid_el.show();
+      kore.con_el
+        .unbind('click')
+        .click(function( e ){
+          kore.deselect_all.call( kore );
+        });
+      
+      this.resize( this.opts.icon_size );
+    },
+    
+    open_icon: function( item, e ){
+      this.open( item.item );
+    },
+    
+    select_icon: function( item, e ){
+      if( e ) e.stopPropagation();
+      
+      if( e.shiftKey )
+        $( item ).toggleClass( 'selected' );
+      else
+        $( item )
+          .addClass( 'selected' )
+          .siblings().removeClass( 'selected' );
+    },
+    
+    deselect_all: function( e ){
+      if( e ) e.preventDefault();
+      
+      this.con_el.find( '.list-item, .icon-item' )
+        .removeClass( 'selected' );
+    },
+    
+    resize: function( size ){
+      this.opts.icon_size = size;
+      
+      var style = $( '#grid-style-' + this.guid );
+      if( ! style.size() )
+        style = $( '<style type="text/css" id="grid-style-'+style+'"></style>' )
+          .appendTo( this.con_el );
+      
+      style.text(
+        '#browser-' + this.guid + ' .grid li {' +
+          'width: ' + size + 'px; height: ' + size + 'px;' +
+        '}'
+      );
+    }
+  };
+  bp.init.prototype = bp;
+  
+  $(function(){
+    var browse_con = $( "<div class='panel' />" ).appendTo( '#main' );
+    M.ui.browse = browse( browse_con, { icon_size: 120 } );
+  });
+  
 })();
 
 
@@ -525,9 +746,9 @@
     if( e.keyCode === 9 )
       receptacle.val( tabcomplete( e ) );
     else if( e.keyCode === 40 )
-      history_prev();
+      history_prev( e );
     else if (e.keyCode === 38 )
-      history_next();
+      history_next( e );
     else
       completing = false;
     
@@ -640,7 +861,7 @@
     history_n = 0;
   }
   
-  function history_go( direction ){
+  function history_go( direction, e ){
     history_n += direction;
     if( history_n < 0 )
       history_n = 0;
@@ -648,15 +869,18 @@
       history_n = history_list.length;
     
     var cmd = ( history_n === 0 ) ? "" : history_list[ history_n - 1 ];
+    
+    if( e ) e.preventDefault();
     receptacle.val( cmd );
+    receptacle[0].selectionStart = receptacle[0].selectionEnd = 1024;
   }
   
-  function history_prev(){
-    history_go( -1 );
+  function history_prev( e ){
+    history_go( -1, e );
   }
   
-  function history_next(){
-    history_go( +1 );
+  function history_next( e ){
+    history_go( +1, e );
   }
   
   M.console_output = output;
@@ -767,14 +991,16 @@
     receptacle = drawer.find('.input input:text');
     history = drawer.find('ul.history');
     
-    $( '#console-resize, #topbar' ).mousedown( dragstart );
+    $( '#console-resize, #topbar' )
+      .mousedown( dragstart );
     $( document )
       .mousemove( move )
       .mouseup( dragend );
     
     receptacle.keydown( input );
     
-    scrollbar = $('#console-scrollbar').scrollbar({ move: scroll });
+    scrollbar = $('#console-scrollbar')
+      .scrollbar({ move: scroll });
     
     history.hover(
       function(){
