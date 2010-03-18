@@ -1,6 +1,20 @@
-/******* ------------------------------------------------------------
- Console
- ***/
+/*////////////////////////////////////////////////////////////
+
+  ///////   /``\
+  // // //   _-`
+  // // //  /___
+ 
+  MessageAdmin 2
+ 
+  -----------------------------
+  Console:
+  
+  Provides all interactivity for the drop-down console. It
+  also contains a basic set of commands, and provides a
+  command registry for adding new ones.
+ 
+ 
+////////////////////////////////////////////////////////////*/
 (function(){
   var open = false,
       drawer,

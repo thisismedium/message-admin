@@ -1,6 +1,19 @@
-/******* ------------------------------------------------------------
- UI - Browse
- ***/
+/*////////////////////////////////////////////////////////////
+
+  ///////   /``\
+  // // //   _-`
+  // // //  /___
+ 
+  MessageAdmin 2
+ 
+  -----------------------------
+  UI.Browse:
+  
+  This is the content browsing UI component, used in the
+  main UI, and in any modal boxes, or anywhere else.
+ 
+ 
+////////////////////////////////////////////////////////////*/
 (function(){
   
   var browse = function( opts ){

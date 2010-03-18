@@ -22,7 +22,9 @@
   - message.ui:  UI base; Registries for UI components, `M.ui` namespace
   - message.ui.browse:  Content browsing UI
   - message.ui.edit:  Content editing UI
+  - message.ui.history:  Monitor/Manipulate URL Hash, back/forward buttons
   - message.console:  Drop-down console UI, console commands
+  
 
 ///////////////////////////////////////////////////////////////////////////*/
 

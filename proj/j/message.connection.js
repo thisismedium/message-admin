@@ -1,6 +1,19 @@
-/******* ------------------------------------------------------------
-  DB Connection
- ***/
+/*////////////////////////////////////////////////////////////
+
+  ///////   /``\
+  // // //   _-`
+  // // //  /___
+ 
+  MessageAdmin 2
+ 
+  -----------------------------
+  DB Connection:
+  
+  Provides a light wrapper around Strophe, as well as event
+  registry for connection events (connected, disconnected, &c.)
+ 
+ 
+////////////////////////////////////////////////////////////*/
 (function(){
   var BOSH = 'http://' + window.location.hostname + ':5280/bosh/http-bind',
       connection,

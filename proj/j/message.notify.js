@@ -1,6 +1,19 @@
-/******* ------------------------------------------------------------
-  Growlesque Notifications
- ***/
+/*////////////////////////////////////////////////////////////
+
+  ///////   /``\
+  // // //   _-`
+  // // //  /___
+ 
+  MessageAdmin 2
+ 
+  -----------------------------
+  Notifications:
+  
+  Handles all manner of notifications, be they
+  growl-style bubbles or otherwise.
+ 
+ 
+////////////////////////////////////////////////////////////*/
 (function(){
   
   function log( msg, p ){

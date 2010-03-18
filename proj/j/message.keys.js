@@ -1,6 +1,19 @@
-/******* ------------------------------------------------------------
-  Key Command Processing
- ***/
+/*////////////////////////////////////////////////////////////
+
+  ///////   /``\
+  // // //   _-`
+  // // //  /___
+ 
+  MessageAdmin 2
+ 
+  -----------------------------
+  Key Commands:
+  
+  Handles the registering of key commands, and watching
+  for events relevant to them.
+ 
+ 
+////////////////////////////////////////////////////////////*/
 (function(){
   
   var mac = /Mac/i.test( navigator.platform ),
