@@ -62,7 +62,8 @@
 
       if( item.kind === 'Folder' ){
         this.path += '/' + item.name;
-        this.display(); }
+        this.display();
+        M.history( this.path ); }
       else
         M.ui.edit( item );
     },
@@ -172,6 +173,10 @@
   $(function(){
     var browse_con = $( "<div class='panel' />" ).appendTo( '#main' );
     M.ui.browse = browse( browse_con, { icon_size: 120 } );
+    
+    M.history.listen( 'b', function( path ){
+      M.ui.browse.open( path );
+    });
   });
   
 })();
