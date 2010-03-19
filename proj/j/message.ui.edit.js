@@ -18,7 +18,7 @@
 (function(){
   
   var edit = function( opts ){
-    return new bp.init( Array.prototype.slice.call( arguments ) );
+    return new ep.init( Array.prototype.slice.call( arguments ) );
   };
   
   var ep = edit.prototype = {
@@ -34,10 +34,11 @@
       
       if( typeof loc !== 'string' ){
         opts = loc;
-        loc = '';
-      }      
+        loc = '';  }
+      
       this.opts = $.extend( {}, this.defaults, opts );
       
+      M.ui.show_panel( this.opts.panel );
       return this;
     }
   };
@@ -66,9 +67,12 @@
     else if( typeof item === 'object' ){
       var current = editing( item );
       if( current )
-        return; // Show editor instead of making a new one
+        M.ui.show_panel( current.panel );
       else
-        edit( )
+        edit({
+          panel: M.ui.panel({ title: item.title, kind: 'Editor' }),
+          item: item
+        });
     }
   }
   

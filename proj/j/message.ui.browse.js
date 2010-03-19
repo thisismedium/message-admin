@@ -29,8 +29,9 @@
     
     init: function( args ){
       this.guid = M.guid();
+      this.panel = args[0];
       
-      var el = $( args[0] ),
+      var el = $( this.panel.elem ),
           loc = args[1],
           opts = args[2];
       
@@ -175,8 +176,8 @@
   bp.init.prototype = bp;
   
   $(function(){
-    var browse_con = $( "<div class='panel' />" ).appendTo( '#main' );
-    M.ui.browse = browse( browse_con, { icon_size: 120 } );
+    var browse_panel = M.ui.panel({ title:'Browse', kind:'Browser' });
+    M.ui.browse = browse( browse_panel, { icon_size: 120 } );
     
     M.history.listen( 'b', function( path ){
       M.ui.browse.open( path );
