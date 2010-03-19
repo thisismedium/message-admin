@@ -45,23 +45,39 @@
       var guid = M.guid();
       return M.ui.panels[ guid ] = {
         guid: guid,
-        elem: $( M.templates.panel({ guid: guid }) ).appendTo( '#main' ),
+        elem: $( M.templates.panel({ guid: guid }) )
+          .appendTo( '#main' )
+          .hide(),
         type: ( arg.kind || 'Panel' ),
-        title: ( arg.title || 'Panel' )
+        title: ( arg.title || 'Panel' ),
+        show: function(){
+          show_panel( guid );
+        },
+        close: function(){
+          close_panel( guid );
+        }
       };
     }
+  }
+
+  function close_panel( panel ){
+    if( typeof panel === 'number' )
+      panel = M.ui.panels[ panel ];
+    if( ! panel ) return;
+    
+    panel.elem.siblings().first().hide();
+    panel.elem.remove();
   }
   
   function show_panel( panel ){
     if( typeof panel === 'number' )
-      panel = panels[ panel ];
+      panel = M.ui.panels[ panel ];
     if( ! panel ) return;
     
     panel.elem.show().siblings().hide();
   }
   
   M.ui.panel = panel;
-  M.ui.show_panel = show_panel;
   M.ui.widget = widget;
   M.ui.toolbar = toolbar;
   M.ui.button = button;

@@ -27,8 +27,9 @@
     
     init: function( args ){
       this.guid = M.guid();
+      this.panel = args[0];
       
-      var el = $( args[0] ),
+      var el = $( this.panel.elem ),
           loc = args[1],
           opts = args[2];
       
@@ -38,7 +39,7 @@
       
       this.opts = $.extend( {}, this.defaults, opts );
       
-      M.ui.show_panel( this.opts.panel );
+      this.panel.show();
       return this;
     }
   };
@@ -69,10 +70,10 @@
       if( current )
         M.ui.show_panel( current.panel );
       else
-        edit({
-          panel: M.ui.panel({ title: item.title, kind: 'Editor' }),
-          item: item
-        });
+        edit(
+          M.ui.panel({ title: item.title, kind: 'Editor' }),
+          { item: item }
+        );
     }
   }
   

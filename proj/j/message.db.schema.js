@@ -42,10 +42,10 @@
   }
   
   function schema( item, cbk ){
-    if( item.kind in schemas )
-      cbk( schemas[ item.kind ] );
+    if( item._kind in schemas )
+      cbk( schemas[ item._kind ] );
     else
-      get_schema( item.kind, cbk );
+      get_schema( item._kind, cbk );
   }
   
   $(function(){

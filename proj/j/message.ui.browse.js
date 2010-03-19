@@ -50,6 +50,7 @@
         
       this.path = loc;
       this.display();
+      this.panel.show();
       
       return this;
     },
@@ -64,7 +65,7 @@
           kore.open.call( kore, this[0] );
         });
       }
-      else if( item.kind === 'Folder' ){
+      else if( item._kind === 'Folder' ){
         this.path = item._path.replace(/^\/[a-z0-9-]+/, '');
         this.display();
         M.history( this.path );
@@ -104,10 +105,10 @@
       $.each( this.items, function(i, item){
         var li = $(
           M.templates[ 'browser-icon' ]({
-            is_folder: /^Folder$/.test( item.kind ),
+            is_folder: /^Folder$/.test( item._kind ),
             name: item.title,
-            kind: item.kind,
-            icon: '/i/icn-' + item.kind.toLowerCase() + '.png'
+            kind: item._kind,
+            icon: '/i/icn-' + item._kind.toLowerCase() + '.png'
           })
         );
         
