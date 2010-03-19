@@ -210,6 +210,7 @@
         cmds[ cmd ][ 0 ].apply( null, args );
       }
       catch( e ){
+          console.debug('ERROR', e);
         M.log( 'Error while executing command `'+input+'`', 1 );
       }
 
@@ -262,7 +263,7 @@
 
   add_command( 'schema', 'Queries the MessageDB for a schema by name.',
     function( name ){
-      M.db.schema( name, function( expr, version, reply ){
+      M.db.get_schema( name, function( expr, version, reply ){
         output( 'schema ' + name,
                 '(version: ' + version + ')\n' + prettify_result( reply ) );
       });
@@ -278,8 +279,13 @@
     });
 
   add_command( 'new', 'Create a new Item or Folder.',
-    function(){
-
+    function( ){
+        var data = Array.prototype.join.call(arguments, ' '),
+            delta = '[{ "method": "create", "data": '+ data + '}]';
+        console.debug('DELTA', arguments, delta);
+        M.db.change( delta, function( expr, reply ){
+            output( 'new ' + data, prettify_result( reply ) );
+        });
     });
 
   add_command( 'js', 'Evaluate some javascript.',
@@ -298,7 +304,7 @@
         output( 'js '+js, e.message );
       }
     });
-  
+
   add_command( 'open', 'Open a path query in main browser.',
     function(){
       var path = Array.prototype.join.call(arguments, ' ');

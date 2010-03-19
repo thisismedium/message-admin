@@ -73,12 +73,43 @@
   }
 
   function query( expr, success, error ){
+      return item('get', expr, success, error);
+  }
+
+  function change( changes, success, error ) {
+      return item('set', changes, success, error);
+  }
+
+  // Items are fetched using a path query.  Items may be changed by
+  // sending a changeset that looks like this:
+  //
+  //   delta = [{ "method": "method-name", "data": { ... } }, ...]
+  //
+  // The "data" attribute is the JSON object you wish to change.  All
+  // methods use the "_path" property to identify which object to act
+  // on.  The "method" may be:
+  //
+  //   create -- create a new object
+  //   save -- replace an existing object
+  //   remove -- delete an existing object
+  //
+  // For "create", the path should be "/parent/folder/path/NAME" where
+  // "NAME" is the same as the name of the item to create.  If the
+  // optional "name" property is also given, it must match.
+  //
+  // For "delete", all properties are ignored except for "_path"; you
+  // don't need to fetch the object before deleting it if you know its
+  // name and the path of its parent.
+  //
+  function item( type, expr, success, error ){
     success = success || function(){};
     error = error || function(){};
 
     evaluate({
-      query: expr,
-      success: function( elem, reply ) { success( expr, reply ); },
+      type: type,
+      method: 'item',
+      data: expr,
+      success: function( elem, reply ) { success(expr, reply); },
       error: function( message ) { error( expr, message ); }
     });
   }
@@ -91,8 +122,8 @@
   //       fields: [{ type: "String", name: "title" }, ...]
   //   }
   //
-  // Each entry in fields is a dictionary that describes the field.
-  // The "name" and "type" attributes are required.  Other, optional
+  // Each entry in fields is an object that describes the field.  The
+  // "name" and "type" attributes are required.  Other, optional
   // attributes are:
   //
   //   title -- a friendly title (label) for the field
@@ -106,7 +137,7 @@
 
     evaluate({
       method: 'schema',
-      query: expr,
+      data: expr,
       success: function( elem, reply ) { success(expr, attr(elem, 'match'), reply); },
       error: function( message ) { error( expr, message ); }
     });
@@ -115,7 +146,7 @@
   // ----- Queries ----- //
   function evaluate( opt ){
     send_iq({
-      iq: make_iq(opt.method || 'query', opt.query),
+      iq: make_iq(opt.type || 'get', opt.method, opt.data),
       success: function(iq) { iq_response(iq, opt.success); },
       error: function(iq) { iq_error(iq, opt.error); }
     });
@@ -125,9 +156,9 @@
       return elem.attributes['match'].nodeValue;
   }
 
-  function make_iq( method, query ) {
-    return $iq({ type: 'get' })
-        .c(method, { xmlns: 'urn:message' })
+  function make_iq( type, method, query ) {
+    return $iq({ type: type })
+        .c(method, { xmlns: 'urn:M' })
         .t(Base64.encode(query));
   }
 
@@ -202,6 +233,7 @@
     M.db.is_connected = is_connected;
     M.db.connection = connection;
     M.db.query = query;
+    M.db.change = change;
     M.db.get_schema = schema;
     M.db.listen = listen;
     M.db.unlisten = unlisten;
