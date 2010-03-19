@@ -17,5 +17,67 @@
 ////////////////////////////////////////////////////////////*/
 (function(){
   
+  var edit = function( opts ){
+    return new bp.init( Array.prototype.slice.call( arguments ) );
+  };
+  
+  var ep = edit.prototype = {
+    defaults: {
+    },
+    
+    init: function( args ){
+      this.guid = M.guid();
+      
+      var el = $( args[0] ),
+          loc = args[1],
+          opts = args[2];
+      
+      if( typeof loc !== 'string' ){
+        opts = loc;
+        loc = '';
+      }      
+      this.opts = $.extend( {}, this.defaults, opts );
+      
+      return this;
+    }
+  };
+  ep.init.prototype = ep;
+  
+  var editors = [];
+  function new_edit( item ){
+    
+  }
+  
+  function editing( item ){
+    var editor = false;
+    for( var n = 0, len = editors.length; n < len; n++ )
+      if( _.isEqual( editors[ n ].item, item ) )
+        editor = editors[ n ];
+
+    return editor;
+  }
+  
+  function dispatch( item ){
+    if( typeof item === 'string' )
+      db( item ).get(function(){
+        dispatch( this );
+      });
+    
+    else if( typeof item === 'object' ){
+      var current = editing( item );
+      if( current )
+        return; // Show editor instead of making a new one
+      else
+        edit( )
+    }
+  }
+  
+  $(function(){
+    M.ui.edit = dispatch;
+    
+    M.history.listen( 'e', function( path ){
+      dispatch( path );
+    });
+  });
   
 })();

@@ -55,15 +55,19 @@
     
     open: function( item ){
       var kore = this;
-      if( typeof item === 'string' )
-        db( item ).get(function(){
-          kore.open.call( kore, this );
-        });
 
-      if( item.kind === 'Folder' ){
-        this.path += '/' + item.name;
+      if( typeof item === 'string' ){
+        if( item === this.path ) return;
+        
+        db( item ).get(function(){
+          kore.open.call( kore, this[0] );
+        });
+      }
+      else if( item.kind === 'Folder' ){
+        this.path = item._path.replace(/^\/[a-z0-9-]+/, '');
         this.display();
-        M.history( this.path ); }
+        M.history( this.path );
+      }
       else
         M.ui.edit( item );
     },

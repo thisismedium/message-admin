@@ -19,6 +19,7 @@
   - message.keys:  Key command registry, Key events
   - message.connection:  Wrapper around Strophe, DB connection
   - message.db:  Database API, global `db` function
+  - message.db.schema:  DB item schema caching/storage
   - message.ui:  UI base; Registries for UI components, `M.ui` namespace
   - message.ui.browse:  Content browsing UI
   - message.ui.edit:  Content editing UI

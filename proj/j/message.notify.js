@@ -27,6 +27,8 @@
       console_log( msg );
     else if( priority === 0 )
       return;
+    else if( priority === -1 )
+      console_error( msg );
   }
   
   function bubble( msg ){
@@ -55,8 +57,13 @@
   }
   
   function console_log( msg ){
-    if( (typeof console !== undefined) && (typeof console.log !== undefined) )
+    if( ('console' in window) && ('log' in console) )
       console.log( msg );
+  }
+  
+  function console_error( msg ){
+    if( ('console' in window) && ('error' in console) )
+      console.error( msg );
   }
   
   $(function(){

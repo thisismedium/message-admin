@@ -202,7 +202,7 @@
     M.db.is_connected = is_connected;
     M.db.connection = connection;
     M.db.query = query;
-    M.db.schema = schema;
+    M.db.get_schema = schema;
     M.db.listen = listen;
     M.db.unlisten = unlisten;
   });

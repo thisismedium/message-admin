@@ -298,7 +298,12 @@
         output( 'js '+js, e.message );
       }
     });
-
+  
+  add_command( 'open', 'Open a path query in main browser.',
+    function(){
+      var path = Array.prototype.join.call(arguments, ' ');
+      M.ui.browse.open( path );
+    });
 
   // ----- DOM Init, &c. ----- //
   M.bind_key_command('ctrl+À', toggle_drawer);

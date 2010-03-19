@@ -60,20 +60,18 @@
   function stop() {
       teardown && teardown();
   }
-  
-  
-  
+
   var history = [],
       registry = {};
     
   function add_location( loc ){
-    var location = {
+    var new_location = {
       path: loc,
       time: new Date()
     };
     
-    history.push( location );
-    return location;
+    history.push( new_location );
+    return new_location;
   }
   
   function changed( loc ){
@@ -93,7 +91,8 @@
   }
   
   function location(){
-    var parts = window.location.hash
+    var hash = window.location.hash;
+    var parts = ( /^\s*$/.test( hash ) ? '#/' : hash )
       .split( '#' )
       .slice( 1 );
     
@@ -114,7 +113,7 @@
     return registry;
   }
   
-  function handler( a ){
+  function dispatch( a ){
     if( a ){
       window.location.hash = a;
       add_location( a );
@@ -122,10 +121,11 @@
     return history;
   }
   
-  M.history = handler;
+  M.history = dispatch;
   M.history.listen = register;
   
   $(function(){
+    add_location( window.location.hash );
     start();
   });
 
