@@ -34,22 +34,25 @@
   function add_schema( kind, schema_str ){
     var schema;
     try {
-      schemas[ kind ] = eval( '('+schema_str+')' ); }
+      schemas[ kind ] = schema = eval( '('+schema_str+')' ); }
     catch( e ){
       schema = null; }
-    finally {
-      return schema; }
+    return schema;
   }
   
   function schema( item, cbk ){
-    if( item._kind in schemas )
-      cbk( schemas[ item._kind ] );
+    var kind = ( typeof item === 'string' ) ? item : item._kind,
+        callback = cbk || function(){};
+    if( kind in schemas ){
+      callback( schemas[ kind ] );
+      return schemas[ kind ];  }
     else
-      get_schema( item._kind, cbk );
+      get_schema( kind, callback );
   }
   
   $(function(){
     M.schema_for = schema;
+    M.schemas = schemas;
   });
   
 })();

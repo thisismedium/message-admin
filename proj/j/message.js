@@ -21,6 +21,7 @@
   - message.db:  Database API, global `db` function
   - message.db.schema:  DB item schema caching/storage
   - message.ui:  UI base; Registries for UI components, `M.ui` namespace
+  - message.ui.widgets: Standard UI widgets, used for editor mostly
   - message.ui.browse:  Content browsing UI
   - message.ui.edit:  Content editing UI
   - message.ui.history:  Monitor/Manipulate URL Hash, back/forward buttons
@@ -50,7 +51,7 @@
     });
   }
   
-  var guid_counter = 1337;
+  var guid_counter = new Date().getTime();
   function guid(){
     return ++guid_counter;
   }
@@ -68,7 +69,7 @@
     $('body').html( Message.templates['main']() );
     
     $('#location input:text').focus(function(){
-      this.selectionStart = this.selectionEnd = 22;
+      this.selectionStart = this.selectionEnd = 320000;
       $('#location').addClass('focused');
     });
     

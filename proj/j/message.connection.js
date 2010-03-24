@@ -77,6 +77,9 @@
   }
 
   function change( changes, success, error ) {
+      changes = ( typeof changes === 'string' ) ?
+        changes :
+        JSON.stringify( changes );
       return item('set', changes, success, error);
   }
 

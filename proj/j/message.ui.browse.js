@@ -41,32 +41,39 @@
       }      
       this.opts = $.extend( {}, this.defaults, opts );
       
-      this.con_el = $( M.templates.browser() );
-      el.empty().append( this.con_el );
-      this.con_el.attr({ id: 'browser-' + this.guid });
+      this.container = $( M.templates.browser() );
+      el.empty().append( this.container );
+      this.container.attr({ id: 'browser-' + this.guid });
       
       this.grid_el = el.find('.grid').hide();
       this.list_el = el.find('.list').hide();
         
       this.path = loc;
       this.display();
-      this.panel.show();
       
       return this;
     },
     
     open: function( item ){
       var kore = this;
-
+      this.panel.show();
+      
+      M.log('Opening this: ' + item, 1 );
+      
       if( typeof item === 'string' ){
-        if( item === this.path ) return;
+        var path = item.replace(/\/$/,'');
+        if( path === this.path ) return;
         
-        db( item ).get(function(){
-          kore.open.call( kore, this[0] );
-        });
+        if( path.length === 0 ){
+          this.path = '';
+          this.display();  }
+        else
+          db( path ).get(function(){
+            kore.open.call( kore, this[0] );
+          });
       }
       else if( item._kind === 'Folder' ){
-        this.path = item._path.replace(/^\/[a-z0-9-]+/, '');
+        this.path = item._path;
         this.display();
         M.history( this.path );
       }
@@ -128,7 +135,7 @@
         });
       
       kore.grid_el.show();
-      kore.con_el
+      kore.container
         .unbind('click')
         .click(function( e ){
           kore.deselect_all.call( kore );
@@ -155,7 +162,7 @@
     deselect_all: function( e ){
       if( e ) e.preventDefault();
       
-      this.con_el.find( '.list-item, .icon-item' )
+      this.container.find( '.list-item, .icon-item' )
         .removeClass( 'selected' );
     },
     
@@ -165,7 +172,7 @@
       var style = $( '#grid-style-' + this.guid );
       if( ! style.size() )
         style = $( '<style type="text/css" id="grid-style-'+style+'"></style>' )
-          .appendTo( this.con_el );
+          .appendTo( this.container );
       
       style.text(
         '#browser-' + this.guid + ' .grid li {' +
@@ -178,7 +185,9 @@
   
   $(function(){
     var browse_panel = M.ui.panel({ title:'Browse', kind:'Browser' });
-    M.ui.browse = browse( browse_panel, { icon_size: 120 } );
+    M.ui.browser = browse( browse_panel, { icon_size: 120 } );
+    
+    M.ui.browse = browse;
     
     M.history.listen( 'b', function( path ){
       M.ui.browse.open( path );

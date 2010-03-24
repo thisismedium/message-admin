@@ -321,6 +321,10 @@
 
     $( '#console-resize, #topbar' )
       .mousedown( dragstart );
+    $( '#location' )
+      .mousedown(function( e ){
+        e.stopPropagation();
+      });
     $( document )
       .mousemove( move )
       .mouseup( dragend );

@@ -91,7 +91,7 @@
   }
   
   function location(){
-    var hash = window.location.hash;
+    var hash = decodeURIComponent( window.location.hash );
     var parts = ( /^\s*$/.test( hash ) ? '#/' : hash )
       .split( '#' )
       .slice( 1 );
@@ -127,6 +127,9 @@
   $(function(){
     add_location( window.location.hash );
     start();
+    M.db.listen( 'connected', function(){
+      changed();
+    });
   });
 
 })();

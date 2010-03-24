@@ -21,19 +21,31 @@
   };
   
   db.fn = db.prototype = (function(){
-    
-    // Helpers &c.
-    
     return {
       init: function( args ){
         this.loaded = false;
+        var q;
         
-        var q = this.base_query = args[0];
-        if( /^[^\/]/.test( q ) )
-          q = '//' + q;
+        if( typeof args[0] === 'string' ){
+          q = this.base_query = args[0];
+          if( /^[^\/]/.test( q ) )
+            q = '//' + q;
+        }
+        else if( typeof args[0] === 'object' ){
+          if( /Array/.test( args[0].constructor ) ){
+            Array.prototype.splice.call( this, 0, this.length );
+            Array.prototype.push.apply( this, args[0] );
+            q = this.base_query = args[0]['_path'];
+            this.loaded = true;
+          }
+          else{
+            this[0] = args[0];
+            q = this.base_query = args[0]['_path'];
+            this.loaded = true;
+          }
+        }
         
-        this.query = q;
-        this.intial_query = q;
+        this.intial_query = this.query = q;
         return this;
       },
       
@@ -43,16 +55,34 @@
       original: {},
       original_data: {},
     
-      set: function(){
-        
+      set: function( key, val ){
+        for( var n = 0, len = this.length; n < len; n++ )
+          if( key in this.properties[ n ] )
+            this.properties[ n ][ key ] = val;
+        return this;
       },
     
       changes: function(){
-      
+        var result = [];
+        for( var n = 0, len = this.length; n < len; n++ )
+          for( var key in this.original[ n ] )
+            if( this.original[ n ][ key ] !== this.properties[ n ][ key ] )
+              ( result[ n ] || (result[ n ] = { _key:this.properties[ n ]['_key'] }) )[ key ] =
+                [ this.original[ n ][ key ], this.properties[ n ][ key ] ];
+        
+        result = _.compact( result );
+        return ( result.length === 1 ) ? result[ 0 ] : result;
       },
     
       has_changed: function( key ){
-      
+        var kore = this,
+        result = _.map( this, function( item, n ){
+          return ( typeof key === 'undefined' ) ? 
+            ! (_.isEqual( kore.original[ n ], kore.properties[ n ] )) :
+            ( kore.original[ n ][ key ] !== kore.properties[ n ][ key ] );
+        });
+        
+        return ( result.length === 1 ) ? result[ 0 ] : result;
       },
     
 
@@ -92,73 +122,111 @@
       get: function( cbk ){
         var kore = this,
             callback = cbk;
-        
-        M.db.query( this.query, function( expr, results ){
-          var data = kore.parse_response.call( kore, results );
-          if( callback )
-            callback.call( kore, data );
-        });
-        
-        return this;
+        return fetch_items.call( this,
+          callback ? callback : function(){}
+        );
       },
       
       each: function( cbk ){
         var kore = this,
             callback = cbk;
-        
-        M.db.query( this.query, function( expr, results ){
-          var data = kore.parse_response.call( kore, results );
-          
-          if( callback )
-            for( var n = 0, len = data.length; n < len; n++ )
-              callback.call( data[ n ], n, data[ n ], kore );
-        });
-
+        return fetch_items.call( this,
+          callback ?
+            function(){
+              for( var n = 0, len = data.length; n < len; n++ )
+                callback.call( data[ n ], n, data[ n ], kore );
+            }
+          : function(){}
+        );
         return this;
       },
       
-      parse_response: function( resp ){
-        var data;
-        try {
-          data = eval( resp );
-          
-          Array.prototype.splice.call( this, 0, this.length );
-          Array.prototype.push.apply( this, data );
-          
-          this.data = data.slice();
-          this.original_data = data.slice();
-        }
-        catch( e ) {
-          data = 'Error parsing database response.';
-          M.log( data, 1 );
-          M.log( e.message, 1 );
-        }
-        finally {
-          this.query = this.original_query;
-          return data;
-        }
-      },
-      
-      save: function(){
-        
+      save: function( cbk ){
+        change.call( this, 'save', cbk );
+        return this;
       },
       
       update: function(){
-        
+        return this;
       },
       
       remove: function(){
-        
+        return this;
       },
       
       move: function(){
-        
+        return this;
       },
       
       copy: function(){
+        return this;
+      },
+      
+      create: function(){
         
       }
     };
+    
+    function fetch_items( callback ){
+      var kore = this;
+      
+      M.db.query( this.query, function( expr, results ){
+        var data = parse_response.call( kore, results );
+        kore.original_data = data;
+        kore.original = [];
+        kore.properties = [];
+        kore.loaded = true;
+        
+        _( data ).each(function( item, n ){
+          kore.original[ n ] = item;
+          kore.properties[ n ] = _.extend( {}, item );
+        });
+        
+        if( callback )
+          callback.call( kore, data );
+      });
+      
+      return this;
+    }
+    
+    function parse_response( resp ){
+      var data;
+      try {
+        data = eval( resp );
+        
+        Array.prototype.splice.call( this, 0, this.length );
+        Array.prototype.push.apply( this, data );
+        
+        this.data = data.slice();
+        this.original_data = data.slice();
+      }
+      catch( e ) {
+        data = 'Error parsing database response.';
+        M.log( data, 1 );
+        M.log( e.message, 1 );
+      }
+      finally {
+        this.query = this.original_query;
+        return data;
+      }
+    }
+    
+    function change( method, cbk ){
+      var callback = cbk || function(){},
+          kore = this;
+      M.db.change(
+        _.map( kore, function( item, n ){
+          return {
+            method: method,
+            data: kore.properties[ n ]
+          };
+        }),
+        callback,
+        function(){
+          callback( 'Error saving.' );
+        }
+      );
+    }
   })();
   
   db.fn.init.prototype = db.fn;

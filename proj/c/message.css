@@ -1,5 +1,5 @@
 /* Borrowed from YUI 2.7.0 w/ a few modifications */
-html{color:#000;background:#FFF;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var,optgroup{font-style:inherit;font-weight:inherit;}del,ins{text-decoration:none;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:baseline;}sub{vertical-align:baseline;}legend{color:#000;}input,button,textarea,select,optgroup,option{font-family:inherit;font-size:inherit;font-style:inherit;font-weight:inherit;}input,button,textarea,select{*font-size:100%;}body{font:11px/16px verdana,clean,sans-serif;*font-size:small;*font:x-small;}select,input,button,textarea,button{font:99% verdana,clean,sans-serif;}table{font-size:inherit;font:100%;}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
+html{color:#000;background:#FFF;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var,optgroup{font-style:inherit;font-weight:inherit;}del,ins{text-decoration:none;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:baseline;}sub{vertical-align:baseline;}legend{color:#000;}input,button,textarea,select,optgroup,option{font-family:inherit;font-size:inherit;font-style:inherit;font-weight:inherit;}input,button,textarea,select{*font-size:100%;}body{font:11px/16px Helvetica, Arial,clean,sans-serif;*font-size:small;*font:x-small;}select,input,button,textarea,button{font:99% Helvetica, Arial,clean,sans-serif;}table{font-size:inherit;font:100%;}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
 /* snoitacifidom wef a /w 0.7.2 IUY morf deworroB */
 
 
@@ -7,7 +7,10 @@ html {
   width:100%; height:100%; }
 
 body {
-  overflow:hidden; }
+  overflow:hidden;
+  color:#373737;
+  font-size:12px;
+  line-height:18px; }
 
 #container {
   position:absolute;
@@ -36,7 +39,7 @@ body {
   
   #location {
     position:absolute;
-    top:5px; left:212px; right:212px; }
+    top:5px; left:212px; right:246px; }
     
     #location input[type=text] {
       position:absolute;
@@ -104,7 +107,63 @@ body {
   top:30px; bottom:0px; left:0px;
   width:199px;
   background:#d1d1d1;
-  border-right:1px #a0a0a0 solid; }
+  border-right:1px #a0a0a0 solid;
+  z-index:900; }
+  
+  #sidebar ul.tabs {
+    border-top:1px #a3a3a3 solid;
+    padding-top:1px;
+    background:#8c8c8c; }
+  
+    #sidebar ul.tabs li.tab {
+      position:relative;
+      width:auto; height:23px;
+      background:url(../i/tab-bg.png) repeat-x; }
+    
+    #sidebar ul.tabs li.tab:hover {
+      background-position:0px -23px; }
+  
+    #sidebar ul.tabs li.tab.selected {
+      background-position:0px -46px !important; }
+    
+      #sidebar ul.tabs li.tab .text {
+        position:absolute;
+        top:0px; left:28px;
+        color:#2f2f2f;
+        font-size:11px;
+        font-weight:bold;
+        text-shadow:0px 1px 0px rgba(255,255,255,0.8);
+        line-height:23px; }
+      
+      #sidebar ul.tabs li.tab.selected .text {
+        color:#dabfe8;
+        text-shadow:0px -1px 0px rgba(0,0,0,0.7); }
+    
+      #sidebar ul.tabs li.tab .point {
+        display:none; }
+    
+      #sidebar ul.tabs li.tab.selected .point {
+        display:block;
+        position:absolute;
+        top:0px; right:-10px;
+        width:10px; height:23px;
+        background:url(../i/tab-point.png) no-repeat; }
+        
+      #sidebar ul.tabs li.tab .icon {
+        position:absolute;
+        top:3px; left:7px;
+        width:16px; height:16px;
+        background-position:0px 0px;
+        background-repeat:no-repeat; }
+      
+      #sidebar ul.tabs li.tab.selected .icon {
+        background-position:0px -16px; }
+      
+      #sidebar ul.tabs li.tab-editor .icon {
+        background-image:url(../i/icn-edit.png); }
+        
+      #sidebar ul.tabs li.tab-browser .icon {
+        background-image:url(../i/icn-browse.png); }
   
 #main {
   position:absolute;
@@ -295,5 +354,63 @@ body {
         .browser .grid li.selected .name {
           color:#fff; }
     
+  .editor {
+    padding-left:24px; }
+    
+    .editor .title {
+      padding:20px 0px 6px;
+      border-bottom:1px #e5e5e5 solid; }
+      
+      .editor .title h1 {
+        font-size:21px;
+        font-weight:bold;
+        color:#191919; }
+        
+    .editor ul.properties {}
+      
+      .editor ul.properties li {
+        position:relative;
+        width:auto;
+        padding:15px 261px 15px 0px;
+        border-bottom:1px #e5e5e5 solid; }
+        
+      .editor ul.properties li .widget {
+        width:100%; }
+        
+        .editor ul.properties li .widget input[type=text],
+        .editor ul.properties li .widget textarea {
+          width:100%;
+          display:block;
+          padding:5px 10px;
+          margin-left:-10px;
+          border-radius:3px;
+          -moz-border-radius:3px;
+          -webkit-border-radius:3px;
+          border:1px #b5b5b5 solid;
+          background:#fff; }
+        
+        .editor ul.properties li .widget input[type=text]:focus,
+        .editor ul.properties li .widget textarea:focus {
+          outline:none;
+          border-color:#9d44e1;
+          box-shadow:0px 0px 3px rgba(57, 5, 97, 0.7);
+          -moz-box-shadow:0px 0px 3px rgba(57, 5, 97, 0.7);
+          -webkit-box-shadow:0px 0px 0px 4px rgba(57, 5, 97, 0.7); }
+        
+        .editor ul.properties li .widget textarea {
+          height:185px; }
+          
+      .editor ul.properties li .info {
+        position:absolute;
+        top:10px; right:30px;
+        width:195px; }
+      
+        .editor ul.properties li .info h3 {
+          font-weight:bold;
+          color:#454545; }
+        
+        .editor ul.properties li .info p {
+          color: #919191 }
+      
   
 
