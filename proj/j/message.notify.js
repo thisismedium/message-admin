@@ -66,7 +66,7 @@
       console.error( msg );
   }
   
-  $(function(){
+  M.ready(function(){
     $('#bubbles .bubble').live( 'click', function( e ){
       e.preventDefault();
       close_bubble( this );

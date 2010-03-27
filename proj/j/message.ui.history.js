@@ -124,7 +124,7 @@
   M.history = dispatch;
   M.history.listen = register;
   
-  $(function(){
+  M.ready(function(){
     add_location( window.location.hash );
     start();
     M.db.listen( 'connected', function(){

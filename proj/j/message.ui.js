@@ -44,16 +44,111 @@
     };
   }
   
+  
+  function button( name, opts ){
+    opts = ( typeof opts === 'function' ) ? opts() : opts;
+    
+    var o = $.extend({
+      name: name,
+      markup: '<button>' + name + '</button>',
+      position: 'left',
+      click: function(){},
+      setup: function(){
+        var kore = this;
+        this.elem = $( this.markup )
+          .mousedown(function( e ){
+            kore.click.call( kore, e );
+          })
+          .appendTo( this.container );
+      },
+      teardown: function(){
+        this.elem.remove();
+      }
+    }, opts );
+    
+    var btn = function( toolbar ){
+      var args = Array.prototype.slice.call( arguments, 1 );
+      return $.
+        extend( {}, o, {
+          init: function(){
+            this.guid = M.guid();
+            this.toolbar = toolbar;
+            this.container = toolbar.container;
+            this.panel = this.toolbar.panel;
+            this.setup.apply( this, args );
+            return this;
+          }
+        }).init( args );
+    };
+    
+    return M.ui.buttons[ name ] = btn;
+  }
+  
+  
   function toolbar( name, opts ){
-    var bar = {};
+    opts = ( typeof opts === 'function' ) ? opts() : opts;
     
-    M.ui.toolbars[ name ] = bar;
-  }
-  
-  function button( name, fook ){
+    var o = $.extend({
+        buttons: [],
+        name: name,
+        markup: '',
+        spacing: { x: 7, y: 5 },
+        pre: function(){},
+        setup: function(){},
+        teardown: function(){},
+        update: function(){}
+      }, opts );
+      
+    var bar = function( panel, elem ){
+      var args = Array.prototype.slice.call( arguments, 1 );
+      
+      function init_buttons(){
+        this.old_buttons = this.buttons.slice();
+        for( var n = 0; n < this.buttons.length; n++ )
+          this.buttons[ n ] = 
+            ( M.ui.buttons[ this.buttons[ n ]] || function(){} )( this );
+        this.buttons = _( this.buttons ).compact();
+      }
+      
+      return $.
+        extend( {}, o, {
+          init: function( args ){
+            this.panel = panel;
+            this.container = elem;
+            this.pre.apply( this, args );
+            this.guid = M.guid();
+            
+            init_buttons.call( this );
+            this.adjust();
+            
+            this.setup.apply( this, args );
+            return this;
+          },
+          
+          adjust: function(){
+            var spacing = this.spacing;
+                right = spacing.x * 2,
+                left = spacing.x * 2;
+            
+            _( this.buttons ).each(function( btn, n ){
+              if( btn.position === 'right' ){
+                btn.elem.css({ position:'absolute', top: spacing.y, right: right });
+                right += btn.elem.outerWidth() + spacing.x;
+              }
+              else if( btn.position === 'left' ){
+                btn.elem.css({ position:'absolute', top: spacing.y, left: left });
+                left += btn.elem.outerWidth() + spacing.x;
+              }
+            });
+          }
+        }).init();
+        
+        
+    };
     
+    return M.ui.toolbars[ name ] = bar;
   }
-  
+
   var tabs = [],
       selected_tab = 0,
       tab_ul;
@@ -64,13 +159,25 @@
       if( tab.guid === tabs[ num ].guid )
         break;
     
-    tabs[ selected_tab ].elem.removeClass('selected');
+    tabs[ selected_tab ].elem.removeClass( 'selected' );
     tabs[ selected_tab ].blur();
     
-    tabs[ num ].elem.addClass('selected');
+    tabs[ num ].elem.addClass( 'selected' );
     tabs[ num ].focus();
     
     selected_tab = num;
+  }
+  
+  function remove_tab( tab ){
+    var num = 0;
+    for(; num < tabs.length; num++ )
+      if( tab.guid === tabs[ num ].guid )
+        break;
+    
+    tabs[ num ].elem.remove();
+    tabs.splice( num, 1 );
+    selected_tab = 0;
+    select_tab( tabs[0] );
   }
   
   window.tabs = tabs;
@@ -93,6 +200,11 @@
       remove_tab( tab );
     };
     
+    tab.retitle = function( str ){
+      this.title = str;
+      this.elem.find('.text').text( str );
+    };
+    
     tab.elem = $(
       M.templates.tab({
         kind: tab.kind,
@@ -102,7 +214,8 @@
       })
     ).appendTo( tab_ul );
     
-    tab.elem.click(function(e){
+    tab.elem.mousedown(function( e ){
+      e.preventDefault();
       tab.panel.show();
     });
     
@@ -110,7 +223,7 @@
     panel.tab = tab;
   }
   
-  $(function(){
+  M.ready(function(){
     tab_ul = $(
       M.templates.tabs()
     ).appendTo( '#sidebar' );
@@ -122,20 +235,41 @@
     
     else if( typeof arg === 'object' ){
       var guid = M.guid();
-      var panel = M.ui.panels[ guid ] = {
-        guid: guid,
-        elem: $( M.templates.panel({ guid: guid }) )
-          .appendTo( '#main' )
-          .hide(),
-        type: ( arg.kind || 'Panel' ),
-        title: ( arg.title || 'Panel' ),
-        show: function(){
-          show_panel( guid );
-        },
-        close: function(){
-          close_panel( guid );
-        },
-      };
+      var panel = M.ui.panels[ guid ] = (function(){
+        var focii = [],
+            blurs = [];
+        
+        function focus( fn ){
+          if( fn ) return focii.push( fn );
+          _( focii ).each(function( f ){
+            f();
+          });
+        }
+        
+        function blur( fn ){
+          if( fn ) return blurs.push( fn );
+          _( blur ).each(function( f ){
+            f();
+          });
+        }
+        
+        return {
+          guid: guid,
+          elem: $( M.templates.panel({ guid: guid }) )
+            .appendTo( '#main' )
+            .hide(),
+          type: ( arg.kind || 'Panel' ),
+          title: ( arg.title || 'Panel' ),
+          show: function(){
+            show_panel( guid );
+          },
+          close: function(){
+            close_panel( guid );
+          },
+          focus: focus,
+          blur: blur
+        };
+      })();
       
       tab( panel, panel.title );
       return panel;
@@ -147,8 +281,11 @@
       panel = M.ui.panels[ panel ];
     if( ! panel ) return;
     
+    delete M.ui.panels[ panel.guid ];
     panel.elem.siblings().first().show();
     panel.elem.remove();
+    
+    panel.tab.remove();
   }
   
   function show_panel( panel ){
@@ -158,6 +295,7 @@
     
     panel.elem.show().siblings().hide();
     panel.tab.select();
+    panel.focus();
   }
   
   M.ui.panel = panel;

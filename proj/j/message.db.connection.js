@@ -77,6 +77,7 @@
   }
 
   function change( changes, success, error ) {
+      console.log( changes );
       changes = ( typeof changes === 'string' ) ?
         changes :
         JSON.stringify( changes );
@@ -222,9 +223,11 @@
   function is_connected(){
     return db_is_connected;
   }
-
+  
+  M.db = {};
+  
   // ----- DOM Ready ----- //
-  $(function(){
+  M.ready(function(){
     connection = strophe({
       url: BOSH,
       rawInput: raw_input,

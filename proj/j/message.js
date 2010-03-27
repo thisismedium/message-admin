@@ -17,11 +17,13 @@
   
   - message:  Main; global `M` namespace, GUID, Load in templates
   - message.keys:  Key command registry, Key events
-  - message.connection:  Wrapper around Strophe, DB connection
+  - message.db.connection:  Wrapper around Strophe, DB connection
   - message.db:  Database API, global `db` function
   - message.db.schema:  DB item schema caching/storage
   - message.ui:  UI base; Registries for UI components, `M.ui` namespace
-  - message.ui.widgets: Standard UI widgets, used for editor mostly
+  - message.ui.widgets:  Standard UI widgets, used for editor mostly
+  - message.ui.buttons-toolbars:  Set of Buttons & Toolbars for use in Panels
+  - message.ui.location:  Location bar stuff
   - message.ui.browse:  Content browsing UI
   - message.ui.edit:  Content editing UI
   - message.ui.history:  Monitor/Manipulate URL Hash, back/forward buttons
@@ -41,6 +43,8 @@
  ***/
 (function(){
   var Message = window.M = {};
+  
+  M.ready = $;
   
   Message.templates = {};
   function load_templates() {
@@ -64,7 +68,15 @@
     return this.length ? this[0].guid : null;
   };
   
-  $(function(){
+  var to_collapse = new RegExp("[^\\w\u0128-\uFFFF-]+", 'gm');
+  M.slugify = function( str ){
+    return str
+      .toLowerCase()
+      .replace( to_collapse, '-' )
+      .replace( /-$/, '' );
+  };
+  
+  M.ready(function(){
     load_templates();
     $('body').html( Message.templates['main']() );
     

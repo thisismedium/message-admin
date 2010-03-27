@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////*/
 (function(){
   
-  var db = window.db = M.db = function(){
+  var db = window.db = function(){
     return new db.fn.init( arguments );
   };
   
@@ -41,6 +41,9 @@
           else{
             this[0] = args[0];
             q = this.base_query = args[0]['_path'];
+            this[0] = this[0];
+            this.length = 1;
+            this.original[0] = _.extend( {}, this[0] );
             this.loaded = true;
           }
         }
@@ -57,29 +60,32 @@
     
       set: function( key, val ){
         for( var n = 0, len = this.length; n < len; n++ )
-          if( key in this.properties[ n ] )
-            this.properties[ n ][ key ] = val;
+          if( key in this[ n ] )
+            this[ n ][ key ] = val;
         return this;
       },
     
       changes: function(){
         var result = [];
-        for( var n = 0, len = this.length; n < len; n++ )
-          for( var key in this.original[ n ] )
-            if( this.original[ n ][ key ] !== this.properties[ n ][ key ] )
-              ( result[ n ] || (result[ n ] = { _key:this.properties[ n ]['_key'] }) )[ key ] =
-                [ this.original[ n ][ key ], this.properties[ n ][ key ] ];
-        
+        for( var n = 0, len = this.length; n < len; n++ ) {
+          console.log( 'item', n );
+          for( var key in this.original[ n ] ){
+            if( this.original[ n ][ key ] !== this[ n ][ key ] )
+              ( result[ n ] || (result[ n ] = { _key:this[ n ]._key }) )[ key ] =
+                [ this.original[ n ][ key ], this[ n ][ key ] ];
+          }
+        }
         result = _.compact( result );
-        return ( result.length === 1 ) ? result[ 0 ] : result;
+        return results;
+        // return ( result.length === 1 ) ? result[ 0 ] : result;
       },
     
       has_changed: function( key ){
         var kore = this,
         result = _.map( this, function( item, n ){
           return ( typeof key === 'undefined' ) ? 
-            ! (_.isEqual( kore.original[ n ], kore.properties[ n ] )) :
-            ( kore.original[ n ][ key ] !== kore.properties[ n ][ key ] );
+            ! (_.isEqual( kore.original[ n ], kore[ n ] )) :
+            ( kore.original[ n ][ key ] !== kore[ n ][ key ] );
         });
         
         return ( result.length === 1 ) ? result[ 0 ] : result;
@@ -174,12 +180,10 @@
         var data = parse_response.call( kore, results );
         kore.original_data = data;
         kore.original = [];
-        kore.properties = [];
         kore.loaded = true;
         
         _( data ).each(function( item, n ){
-          kore.original[ n ] = item;
-          kore.properties[ n ] = _.extend( {}, item );
+          kore.original[ n ] = _.extend( {}, item )
         });
         
         if( callback )
@@ -218,7 +222,7 @@
         _.map( kore, function( item, n ){
           return {
             method: method,
-            data: kore.properties[ n ]
+            data: kore[ n ]
           };
         }),
         callback,

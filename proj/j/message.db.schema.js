@@ -50,8 +50,26 @@
       get_schema( kind, callback );
   }
   
-  $(function(){
+  function stub_out( schema, path ){
+    var path = ( path || '' ).replace( /\/?$/, '/' ),
+        title = 'Untitled ' + schema.name,
+        obj = {
+          _kind: schema.name,
+          _path: path + M.slugify( title ),
+          _stub: true,
+          title: title
+        };
+        
+    _.each( schema.fields, function( field ){
+      obj[ field.name ] = obj[ field.name ] || '';
+    });
+    
+    return obj;
+  }
+  
+  M.ready(function(){
     M.schema_for = schema;
+    M.db.stub = stub_out;
     M.schemas = schemas;
   });
   

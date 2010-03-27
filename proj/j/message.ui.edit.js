@@ -39,33 +39,16 @@
         loc = '';  }
       
       this.opts = $.extend( {}, this.defaults, opts );
+      this.panel.focus(function(){
+        kore.display_path.call( kore );
+      });
       
       this.container = $( M.templates.editor() )
         .appendTo( this.panel.elem );
       this.panel.show();
       
-      
-      
-      
-      
-      $('<a/>', {
-        href: '#lol',
-        text: 'SAAAAAAAAAAVE',
-        css: {
-          background: '#000',
-          color: '#fff',
-          padding: 10
-        },
-        click: function( e ){
-          e.preventDefault();
-          kore.save.call( kore );
-        }
-      }).appendTo( this.container );
-      
-      
-      
-      
-      
+      this.toolbar = M.ui.toolbars.editor(
+        this, this.container.siblings( '.edit-toolbar' ));
       
       this.load( this.opts.item );
       return this;
@@ -82,11 +65,19 @@
       }
       else if( typeof item === 'object' ){
         this.item = item;
+        this.db_item = db( item );
         this.path = this.item._path;
         this.get_schema(function(){
           kore.render.call( kore );
         });
       }
+    },
+    
+    display_path: function(){
+      if( ! this.db_item ) return;
+      M.ui.location.path( this.db_item[0]._path );
+      // console.log( 'e:' + this.db_item[0]._path );
+      M.history( 'e:' + this.db_item[0]._path );
     },
     
     get_schema: function( cbk ){
@@ -101,6 +92,9 @@
     render: function(){
       this.container.find('.title h1')
         .text( this.item.title );
+        
+      if( this.panel.elem.is(':visible') )
+        this.display_path();
             
       var ul = this.container.find('ul.properties'),
           kore = this;
@@ -120,67 +114,122 @@
         );
         li[0].widget.setup();
         
+        li.find(':input').blur(function(){
+          kore.serialize.call( kore );
+        });
       });
     },
     
-    save: function(){
-      M.db.change([{ method:'save', data: this.serialize() }], function(){ M.log("SAVED!") }, function(){ M.log("FACK!"); });
+    close: function(){
+      this.serialize();
+      if( ! this.db_item.has_changed() )
+        true;
+      else if( confirm("If you close you will lose all unsaved changes.") )
+        true;
+      else
+        return;
+      this.panel.close();
+      close_editor( this );
+    },
+    
+    save: function( cbk ){
+      this.serialize();
+      
+      if( '_stub' in this.db_item[0] ) {
+        delete this.db_item[0]['_stub'];
+        var to_go = $.extend( {}, this.db_item[0] );
+        delete to_go['name'];
+        delete to_go['folder'];
+        
+        M.db.change(
+          [{ method:'create', data: to_go }],
+          function(){
+            M.log("Created.");
+            if( cbk ) cbk();
+          },
+          function( msg ){
+            M.log( "Error:" + msg );
+          }
+        );
+      }
+      else      
+        M.db.change(
+          [{ method:'save', data: this.db_item[0] }],
+          function(){
+            M.log("Saved.");
+            if( cbk ) cbk();
+          },
+          function( msg ){
+            M.log( "Error:" + msg );
+          }
+        );
     },
     
     serialize: function(){
+      console.log('serialize');
       var result = {},
           kore = this;
       _( this.schema.fields ).each(function( field ){
         var li = kore.container.find('ul.properties li.property-' + field.name )[ 0 ];
         result[ field.name ] = li.widget.val();
       });
-      return $.extend( {}, this.item, result );
+      return $.extend( this.db_item[0], result );
     }
     
   };
   ep.init.prototype = ep;
   
   var editors = [];
-  function new_edit( item ){
-    
+  
+  function close_editor( editor ){
+    var no = 0,
+        guid = ( typeof editor === 'object' ) ? editor.guid : editor;
+    for( var n = 0, len = editors.length; n < len; n++ )
+      if( editors[ n ].guid === guid )
+        no = n;
+    editors.splice( no, 1 );
   }
   
   function editing( item, path_only ){
     var editor = false;
     for( var n = 0, len = editors.length; n < len; n++ )
-      if( _.isEqual( editors[ n ].item, item ) )
+      if( ( path_only && ( editors[ n ].path === item ) ) ||
+          ( editors[ n ].item._path === item._path ) )
         editor = editors[ n ];
 
     return editor;
   }
   
   function dispatch( item, change_event ){
-    
-    
-    
     if( typeof item === 'string' ){
       var current = editing( item, true );
-      M.log( 'current' + current, 1 );
       if( current )
-        M.ui.show_panel( current.panel );
+        current.panel.show();
       else
         db( item ).get(function(){
           dispatch( this[0] );
         });
     }
     else if( typeof item === 'object' ){
-      edit(
-        M.ui.panel({ title: item.title, kind: 'Editor' }),
-        { item: item }
-      );
+      var current = editing( item );
+      if( current )
+        current.panel.show();
+      else
+        editors.push(
+          edit(
+            M.ui.panel({ title: item.title, kind: 'Editor' }),
+            { item: item }
+          )
+        );
     }
     
     if( ! change_event )
       M.history( 'e:' + item._path );
   }
   
-  $(function(){
+  M.ready(function(){
     M.ui.edit = dispatch;
+    M.ui._editors = editors;
     
     M.history.listen( 'e', function( path ){
       dispatch( path, true );

@@ -314,7 +314,7 @@
   // ----- DOM Init, &c. ----- //
   M.bind_key_command('ctrl+À', toggle_drawer);
 
-  $(function(){
+  M.ready(function(){
     drawer = $( M.templates['console']() ).appendTo('#container');
     receptacle = drawer.find('.input input:text');
     history = drawer.find('ul.history');

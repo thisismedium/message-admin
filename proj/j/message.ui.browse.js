@@ -25,6 +25,7 @@
       mode: 'grid',
       sort: 'index',
       icon_size: 76,
+      main: false
     },
     
     init: function( args ){
@@ -33,7 +34,8 @@
       
       var el = $( this.panel.elem ),
           loc = args[1],
-          opts = args[2];
+          opts = args[2],
+          kore = this;
       
       if( typeof loc !== 'string' ){
         opts = loc;
@@ -41,12 +43,19 @@
       }      
       this.opts = $.extend( {}, this.defaults, opts );
       
+      this.panel.focus(function(){
+        kore.display_path.call( kore );
+      });
+      
       this.container = $( M.templates.browser() );
       el.empty().append( this.container );
       this.container.attr({ id: 'browser-' + this.guid });
       
       this.grid_el = el.find('.grid').hide();
       this.list_el = el.find('.list').hide();
+      
+      if( this.opts.main )
+        this.main_toolbar();
         
       this.path = loc;
       this.display();
@@ -58,14 +67,13 @@
       var kore = this;
       this.panel.show();
       
-      M.log('Opening this: ' + item, 1 );
-      
       if( typeof item === 'string' ){
         var path = item.replace(/\/$/,'');
         if( path === this.path ) return;
         
         if( path.length === 0 ){
           this.path = '';
+          this.title = 'Browse';
           this.display();  }
         else
           db( path ).get(function(){
@@ -73,6 +81,7 @@
           });
       }
       else if( item._kind === 'Folder' ){
+        this.title = item.title;
         this.path = item._path;
         this.display();
         M.history( this.path );
@@ -84,6 +93,10 @@
     display: function( path, mode ){
       var path = path || this.path,
           kore = this;
+      
+      this.panel.tab.retitle( this.title );
+      // this.display_path( path );
+      M.ui.location.path( path );
           
       if( mode )
         this.opts.mode = mode;
@@ -99,6 +112,11 @@
         load_items();
       else
         M.db.listen( 'connected', load_items );
+    },
+    
+    display_path: function( path ){
+      M.ui.location.path( path || this.path );
+      M.history( path || this.path );
     },
     
     list: function( items ){
@@ -144,6 +162,37 @@
       this.resize( this.opts.icon_size );
     },
     
+    main_toolbar: function(){
+      this.toolbar = M.ui.toolbars[ 'browser-main' ](
+        this, this.container.find( '.toolbar' ));
+      
+      var kore = this;
+      this.toolbar.buttons[0].callbacks.move = function( val ){
+        kore.resize( 231 * val + 24 );
+      };
+      kore.toolbar.buttons[0].val( kore.opts.icon_size / 255 );
+      
+      kore.toolbar.buttons[1]
+        .options( 'Page', 'Folder' )
+        .change( function( val ){
+           // var name = prompt( 'Whatcha reckon you gon\' call that there ' + val + ', huh?' );
+           // M.log( 'Creating ' + val + ' &ldquo;' + name + '&rdquo;&hellip;' );
+           kore.create_new( val );
+         });
+    },
+    
+    create_new: function( kind ){
+      if( kind === 'Folder' ){
+        
+      }
+      else {
+        var path = this.path;
+        M.schema_for( kind, function( schema ){
+          M.ui.edit( M.db.stub( schema, path ));
+        });
+      }
+    },
+    
     open_icon: function( item, e ){
       this.open( item.item );
     },
@@ -183,14 +232,14 @@
   };
   bp.init.prototype = bp;
   
-  $(function(){
+  M.ready(function(){
     var browse_panel = M.ui.panel({ title:'Browse', kind:'Browser' });
-    M.ui.browser = browse( browse_panel, { icon_size: 120 } );
+    M.ui.browser = browse( browse_panel, { icon_size: 120, main: true } );
     
     M.ui.browse = browse;
     
     M.history.listen( 'b', function( path ){
-      M.ui.browse.open( path );
+      M.ui.browser.open( path );
     });
   });
   
