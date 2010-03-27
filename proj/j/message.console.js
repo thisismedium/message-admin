@@ -308,7 +308,7 @@
   add_command( 'open', 'Open a path query in main browser.',
     function(){
       var path = Array.prototype.join.call(arguments, ' ');
-      M.ui.browse.open( path );
+      M.ui.browser.open( path );
     });
 
   // ----- DOM Init, &c. ----- //
