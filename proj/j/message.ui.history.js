@@ -75,6 +75,7 @@
   }
   
   function changed( loc ){
+    return;
     _( loc || location() ).each(function( l ){
       fire( l.name, l.content );
     });
@@ -114,6 +115,7 @@
   }
   
   function dispatch( a ){
+    return history;
     if( a ){
       window.location.hash = a;
       add_location( a );

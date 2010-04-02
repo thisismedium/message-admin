@@ -19,7 +19,14 @@
       control = M.ui.button,
       toolbar = M.ui.toolbar;
       
-  // ----- Buttons ----- //  
+  // ----- Buttons ----- //
+  button( 'modal-test', {
+    position: 'left',
+    click: function(){
+      M.ui.modal({ title: 'Hello Modal' });
+    }
+  });
+  
   button( 'save', {
     markup: '<button>Save</button>',
     position: 'right',
@@ -52,7 +59,7 @@
         btn,
         dropdown,
         timer,
-        change = function(){};
+        change = Noop;
     
     function adjust(){
       dropdown.empty();
@@ -96,9 +103,9 @@
     return {
       markup: '<div class="menu"><button class="light">New <span class="down-arrow">&darr;</span></button></div>',
       position: 'left',
-      click: function(){},
+      click: Noop,
       setup: function( cbks, initial ){
-        this.elem = $( this.markup ).appendTo( this.container );
+        this.elem = $( this.markup ).appendTo( this.container ).css({ width:50 });
         btn = this.elem.find( 'button' );
         dropdown = $( '<ul class="dropdown"></ul>' ).appendTo( this.elem ).hide();
         btn.mousedown( show );
@@ -113,30 +120,19 @@
       },
       options: function(){
         var opts = Array.prototype.slice.call( arguments );
-        options.push.apply( options, opts );
+        options = opts;
         adjust();
         return this;
       }
     };
   });
   
-  M.ready( function(){
-    $('ul.dropdown li').live( 'mouseover', function(){
-      $( this ).addClass( 'hover' );
-    });
-    
-    $('ul.dropdown li').live( 'mouseout', function(){
-      $( this ).removeClass( 'hover' );
-    });
-  });
-  
-  
   control( 'slider', function(){
     var kore,
         opts = {
-          start: function(){},
-          move: function(){},
-          end: function(){}
+          start: Noop,
+          move: Noop,
+          end: Noop
         },
         dragging = false,
         offset,
@@ -198,7 +194,7 @@
   });
 
   toolbar( 'browser-main', {
-    buttons: [ 'slider', 'new-item' ],
+    buttons: [ 'slider', 'new-item', 'modal-test' ],
   });
   
 })();

@@ -1,0 +1,8 @@
+.modal{ 'class': os + ( headless ? ' headless' : '' ) }
+  %button.modal-close= '&times;'
+  - if( ! headless )
+    .titlebar= title
+  .inner
+  .toolbar
+  - if( resizable )
+    .modal-resize ///

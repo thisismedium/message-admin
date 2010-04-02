@@ -16,6 +16,8 @@
 ////////////////////////////////////////////////////////////*/
 (function(){
   
+  M.load_template( 'bubble' );
+  
   function log( msg, p ){
     var priority = ( p === undefined ) ? 2 : p;
     

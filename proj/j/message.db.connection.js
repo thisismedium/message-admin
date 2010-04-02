@@ -106,8 +106,8 @@
   // name and the path of its parent.
   //
   function item( type, expr, success, error ){
-    success = success || function(){};
-    error = error || function(){};
+    success = success || Noop;
+    error = error || Noop;
 
     evaluate({
       type: type,
@@ -136,8 +136,8 @@
   //   required -- true if this field is required
   //
   function schema( expr, success, error ){
-    success = success || function(){};
-    error = error || function(){};
+    success = success || Noop;
+    error = error || Noop;
 
     evaluate({
       method: 'schema',

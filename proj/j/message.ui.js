@@ -16,6 +16,8 @@
 ////////////////////////////////////////////////////////////*/
 (function(){
   
+  M.load_template( 'tab', 'tabs', 'panel' );
+  
   M.ui = {
     widgets: {},
     toolbars: {},
@@ -52,7 +54,7 @@
       name: name,
       markup: '<button>' + name + '</button>',
       position: 'left',
-      click: function(){},
+      click: Noop,
       setup: function(){
         var kore = this;
         this.elem = $( this.markup )
@@ -84,6 +86,7 @@
     return M.ui.buttons[ name ] = btn;
   }
   
+  window.toolbars = [];
   
   function toolbar( name, opts ){
     opts = ( typeof opts === 'function' ) ? opts() : opts;
@@ -93,23 +96,24 @@
         name: name,
         markup: '',
         spacing: { x: 7, y: 5 },
-        pre: function(){},
-        setup: function(){},
-        teardown: function(){},
-        update: function(){}
+        pre: Noop,
+        setup: Noop,
+        teardown: Noop,
+        update: Noop
       }, opts );
       
     var bar = function( panel, elem ){
       var args = Array.prototype.slice.call( arguments, 1 );
       
-      function init_buttons(){
-        this.old_buttons = this.buttons.slice();
-        for( var n = 0; n < this.buttons.length; n++ )
-          this.buttons[ n ] = 
-            ( M.ui.buttons[ this.buttons[ n ]] || function(){} )( this );
-        this.buttons = _( this.buttons ).compact();
+      function init_buttons( btns, toolbar ){
+        var buttons = [];
+        for( var n = 0; n < btns.length; n++ )
+          buttons.push(
+            ( M.ui.buttons[ btns[ n ]] || Noop )( toolbar )
+          );
+        return _( buttons ).compact();
       }
-      
+
       return $.
         extend( {}, o, {
           init: function( args ){
@@ -118,7 +122,7 @@
             this.pre.apply( this, args );
             this.guid = M.guid();
             
-            init_buttons.call( this );
+            this.buttons = init_buttons( this.buttons, this );
             this.adjust();
             
             this.setup.apply( this, args );
@@ -141,8 +145,7 @@
               }
             });
           }
-        }).init();
-        
+      }).init();
         
     };
     
@@ -188,8 +191,8 @@
       kind: panel.type,
       guid: M.guid(),
       title: title,
-      focus: ( focus || function(){} ),
-      blur: ( blur || function(){} )
+      focus: ( focus || Noop ),
+      blur: ( blur || Noop )
     };
     
     tab.select = function(){

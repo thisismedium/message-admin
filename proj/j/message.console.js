@@ -16,6 +16,9 @@
 
 ////////////////////////////////////////////////////////////*/
 (function(){
+  
+  M.load_template( 'console', 'command' );
+  
   var open = false,
       drawer,
       drawer_size = 200,

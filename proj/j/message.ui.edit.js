@@ -17,6 +17,8 @@
 ////////////////////////////////////////////////////////////*/
 (function(){
   
+  M.load_template( 'editor', 'editor-property' );
+  
   var edit = function( opts ){
     return new ep.init( Array.prototype.slice.call( arguments ) );
   };
@@ -81,7 +83,7 @@
     },
     
     get_schema: function( cbk ){
-      var callback = cbk || function(){},
+      var callback = cbk || Noop,
           kore = this;
       M.schema_for( this.item, function( schema ){
         kore.schema = schema;

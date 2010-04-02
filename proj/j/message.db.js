@@ -21,16 +21,21 @@
   };
   
   db.fn = db.prototype = (function(){
+    // Using a closures to simulate private functions(located at the bottom)
     return {
+      // Init is called for every new instance via db()
       init: function( args ){
         this.loaded = false;
         var q;
         
+        // Treat a string as a path query
         if( typeof args[0] === 'string' ){
           q = this.base_query = args[0];
           if( /^[^\/]/.test( q ) )
             q = '//' + q;
         }
+        // Otherwise, assume an object or an array of objects
+        // represent an item in the database, and just wrap them up
         else if( typeof args[0] === 'object' ){
           if( /Array/.test( args[0].constructor ) ){
             Array.prototype.splice.call( this, 0, this.length );
@@ -54,21 +59,25 @@
       
       
       // ----- JS Object methods ----- //
-      properties: {},
       original: {},
       original_data: {},
-    
+      
+      // Sets a property (if present) on all items in current set,
+      // and returns the db object.
       set: function( key, val ){
         for( var n = 0, len = this.length; n < len; n++ )
           if( key in this[ n ] )
             this[ n ][ key ] = val;
         return this;
       },
-    
+      
+      // Returns an array of changed properties for all items in the set,
+      // identified by _key, structured like so:
+      //   [ { _key: 'a...', title: ['old...','new...'] },
+      //     { _key: 'b...', content: ['old...','new...'] } ]
       changes: function(){
         var result = [];
         for( var n = 0, len = this.length; n < len; n++ ) {
-          console.log( 'item', n );
           for( var key in this.original[ n ] ){
             if( this.original[ n ][ key ] !== this[ n ][ key ] )
               ( result[ n ] || (result[ n ] = { _key:this[ n ]._key }) )[ key ] =
@@ -76,10 +85,11 @@
           }
         }
         result = _.compact( result );
-        return results;
-        // return ( result.length === 1 ) ? result[ 0 ] : result;
+        return result;
       },
-    
+      
+      // Returns an array of `true` or `false` for each item in the set,
+      // determined by whether any properties have been altered.
       has_changed: function( key ){
         var kore = this,
         result = _.map( this, function( item, n ){
@@ -93,6 +103,11 @@
     
 
       // ----- Query-building methods ----- //
+      // All these methods work by appending to an internal XPath query.
+      // This query is reset to the original query from instantiation
+      // whenever .get() or .each() are called. Most take an optional selector
+      // that will be applied.
+      
       parent: function( selector ){
         this.query += '/parent::' + ( selector || '*' );
         return this;
@@ -125,14 +140,20 @@
       
       
       // ----- Remote methods ----- //
+      // These methods actually make calls to the database, based on
+      // the current internal query, and pass the result on to a callback function.
+      
+      // Fetches items for the current query, and passes them along to the callback.
       get: function( cbk ){
         var kore = this,
             callback = cbk;
         return fetch_items.call( this,
-          callback ? callback : function(){}
+          callback ? callback : Noop
         );
       },
       
+      // Fetches items for the current query, then iterates over them, calling the
+      // specifed callback function on each one.
       each: function( cbk ){
         var kore = this,
             callback = cbk;
@@ -142,7 +163,7 @@
               for( var n = 0, len = data.length; n < len; n++ )
                 callback.call( data[ n ], n, data[ n ], kore );
             }
-          : function(){}
+          : Noop
         );
         return this;
       },
@@ -156,7 +177,8 @@
         return this;
       },
       
-      remove: function(){
+      remove: function( cbk ){
+        change.call( this, 'remove', cbk );
         return this;
       },
       
@@ -216,7 +238,7 @@
     }
     
     function change( method, cbk ){
-      var callback = cbk || function(){},
+      var callback = cbk || Noop,
           kore = this;
       M.db.change(
         _.map( kore, function( item, n ){

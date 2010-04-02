@@ -42,7 +42,7 @@
   
   function schema( item, cbk ){
     var kind = ( typeof item === 'string' ) ? item : item._kind,
-        callback = cbk || function(){};
+        callback = cbk || Noop;
     if( kind in schemas ){
       callback( schemas[ kind ] );
       return schemas[ kind ];  }

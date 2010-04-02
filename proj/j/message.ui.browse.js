@@ -16,6 +16,8 @@
 ////////////////////////////////////////////////////////////*/
 (function(){
   
+  M.load_template( 'browser', 'browser-icon' );
+  
   var browse = function( opts ){
     return new bp.init( Array.prototype.slice.call( arguments ) );
   };
@@ -45,9 +47,30 @@
       
       this.panel.focus(function(){
         kore.display_path.call( kore );
+        kore.toolbar.adjust();
       });
       
       this.container = $( M.templates.browser() );
+      this.container.menu( 'right', [
+        ['View Options', function(){
+          M.log('VIEW OPTIONS!');
+        }],
+        
+        '--------------------------',
+        
+        ['Get Info', function(){
+          M.log('INFO!');
+        }],
+        ['Create New', [
+          ['Page', function(){
+            M.log('NEW PAGE!!!!');
+          }],
+          ['Folder', function(){
+            M.log('NEW FOLDER!?!');
+          }]
+        ]]
+      ]);
+      
       el.empty().append( this.container );
       this.container.attr({ id: 'browser-' + this.guid });
       
@@ -95,7 +118,6 @@
           kore = this;
       
       this.panel.tab.retitle( this.title );
-      // this.display_path( path );
       M.ui.location.path( path );
           
       if( mode )
@@ -123,22 +145,54 @@
       
     },
     
+    refresh: function(){
+      this.display();
+    },
+    
+    add_item: function( item ){
+      var ul = this.grid_el.find('ul');
+      var li = $(
+        M.templates[ 'browser-icon' ]({
+          is_folder: /^Folder$/.test( item._kind ),
+          name: item.title,
+          kind: item._kind,
+          icon: '/i/icn-' + item._kind.toLowerCase() + '.png'
+        })
+      );
+      
+      var this_item = li[ 0 ].item = item;
+      ul.append( li );
+      li.find( '.name' ).in_place({
+        type: 'short',
+        change: function( val ){
+          db( this_item ).set( 'title', val ).save(function(){
+            M.log( 'Saved.' );
+          });
+        }
+      });
+      
+      li.menu( 'right', [
+        ['Get Info', function(){
+          M.log(' INFO! ');
+        }],
+        ['Rename', function(){
+          li.find( '.name' )[0].edit();
+        }],
+        ['Delete', function(){
+          if( confirm('Are you sure you want to delete this item?') )
+            db( li.remove()[0].item ).remove();
+        }]
+      ]);
+      
+      return li;
+    },
+    
     grid: function( items ){
       var kore = this,
           ul = kore.grid_el.find('ul').empty();
       
       $.each( this.items, function(i, item){
-        var li = $(
-          M.templates[ 'browser-icon' ]({
-            is_folder: /^Folder$/.test( item._kind ),
-            name: item.title,
-            kind: item._kind,
-            icon: '/i/icn-' + item._kind.toLowerCase() + '.png'
-          })
-        );
-        
-        li[ 0 ].item = item;
-        ul.append( li );
+        kore.add_item( item );
       });
       
       ul.find('li')
@@ -168,29 +222,31 @@
       
       var kore = this;
       this.toolbar.buttons[0].callbacks.move = function( val ){
-        kore.resize( 231 * val + 24 );
+        kore.resize( 48 + val * 207 );
       };
       kore.toolbar.buttons[0].val( kore.opts.icon_size / 255 );
       
       kore.toolbar.buttons[1]
         .options( 'Page', 'Folder' )
         .change( function( val ){
-           // var name = prompt( 'Whatcha reckon you gon\' call that there ' + val + ', huh?' );
-           // M.log( 'Creating ' + val + ' &ldquo;' + name + '&rdquo;&hellip;' );
            kore.create_new( val );
          });
     },
     
     create_new: function( kind ){
-      if( kind === 'Folder' ){
-        
-      }
-      else {
-        var path = this.path;
-        M.schema_for( kind, function( schema ){
+      var path = this.path,
+          kore = this;
+      M.schema_for( kind, function( schema ){
+        if( kind === 'Folder' ){
+          kore.add_item( M.db.stub( schema, path ) )
+            .addClass('selected')
+            .find( '.name' )[ 0 ]
+              .edit();
+        }
+        else {
           M.ui.edit( M.db.stub( schema, path ));
-        });
-      }
+        }
+      });
     },
     
     open_icon: function( item, e ){
@@ -235,6 +291,7 @@
   M.ready(function(){
     var browse_panel = M.ui.panel({ title:'Browse', kind:'Browser' });
     M.ui.browser = browse( browse_panel, { icon_size: 120, main: true } );
+    browse_panel.show();
     
     M.ui.browse = browse;
     

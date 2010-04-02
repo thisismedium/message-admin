@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <meta content='text/html; charset=utf-8' http-equiv='Content-Type' />
+    <title>GENIEOUS</title>
+    
+    <script src='j/jquery-1.4.min.js' type='text/javascript'></script>
+    <script src='j/raphael-1.2.8.js' type='text/javascript'></script>
+    <script type="text/javascript">
+      $(function(){
+        var genie_out = "M0,357c0,1.656,1.343,3,3,3h353.917c1.656,0,3-1.344,3-3L360,3c0-1.657-1.344-3-3-3H3 C1.343,0,0,1.343,0,3V357z",
+            genie_in = "M10.269,33.276c0,0,6.093-3.084,6.231-9.609S8.181,10.119,7.07,8.916	C5.196,6.694,5.265,5.861,8.458,7.712c2.036,0.74,13.543,11.731,17.708,9.788c4.165-1.943,5.661-4.35,5.661-4.35 C29.653,8.522,6.827,5.989,6.283,6s-0.81,0.417-1.087,0.879C4.918,7.342,4.097,29.826,10.269,33.276z",
+            box_size = 360;
+        
+        var w = 500, h = 200;
+        
+        
+        
+        var paper = Raphael($("#box")[0], 800, 800);
+        var box = paper.path( genie_out ).attr({
+          fill: 'rgb(17,17,17)',
+          opacity: 0.9,
+          stroke: null,
+          'stroke-width': 0
+        });
+        
+        box.scale( w / box_size, h / box_size, 0, 0 );
+        
+        $('#box').click(function(){
+          setTimeout( function(){
+            $('#box').fadeOut( 120 );
+          }, 100 );
+          box.animate({
+            path: genie_in
+          }, 300, '>' );
+          
+        });
+        
+      });
+    </script>
+  </head>
+  <body>
+    <div id="box" style="width:800px; height:800px; margin:40px auto;"></div>
+    
+  </body>
+</html>
