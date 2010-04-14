@@ -3,20 +3,20 @@
   ///////   /``\
   // // //   _-`
   // // //  /___
- 
+
   MessageAdmin 2
- 
+
   -----------------------------
   UI Widgets:
-  
+
   Set of standard widgets for use in the content
   editing panel.
- 
- 
+
+
 ////////////////////////////////////////////////////////////*/
 (function(){
   var widget = M.ui.widget;
-  
+
   widget( 'string', function(){
     return {
       setup: function(){
@@ -24,12 +24,12 @@
           .appendTo( this.container );
       },
       teardown: function(){
-        
+
       }
     };
   });
-  
-  
+
+
   widget( 'text', function(){
     return {
       setup: function(){
@@ -37,18 +37,20 @@
           .appendTo( this.container );
       },
       teardown: function(){
-      
+
       }
     };
   });
-  
-  widget( 'ref.Item', function(){
+
+  widget( 'html', M.ui.widgets[ 'text' ] );
+
+  widget( 'key', function(){
     return {
       setup: function(){
         $( this.container ).html( '<tt>' + this.value + '</tt>');
       }
     };
   });
-  
-  
+
+
 })();
