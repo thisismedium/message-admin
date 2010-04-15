@@ -623,6 +623,7 @@ body {
   .modal .modal-close {
     position:absolute;
     top:0px; left:0px;
+    margin:0px !important;
     background:transparent;
     border:none;
     color:#a0a0a0;
@@ -697,6 +698,24 @@ body {
     text-indent:-9999px; }
 
 
+
+.info-table {
+  border-top:1px #444 solid;
+  margin-top:4px;
+  padding-top:8px;
+  width:100%; }
+  
+  .info-table th {
+/*    width:25%;*/
+    width:96px;
+    text-align:right;
+    color:#eee;
+    font-weight:bold;
+    padding-right:12px; }
+    
+  .info-table td {
+/*    width:75%;*/
+    color:#ccc; }
 
 
 

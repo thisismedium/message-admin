@@ -20,10 +20,17 @@
       toolbar = M.ui.toolbar;
       
   // ----- Buttons ----- //
-  button( 'modal-test', {
+  button( 'Modal Test', {
     position: 'left',
     click: function(){
       M.ui.modal({ title: 'Hello Modal' });
+    }
+  });
+  
+  button( 'Modal Test B', {
+    position: 'left',
+    click: function(){
+      M.ui.modal();
     }
   });
   
@@ -194,7 +201,7 @@
   });
 
   toolbar( 'browser-main', {
-    buttons: [ 'slider', 'new-item', 'modal-test' ],
+    buttons: [ 'slider', 'new-item', 'Modal Test', 'Modal Test B' ],
   });
   
 })();

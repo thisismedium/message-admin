@@ -26,15 +26,26 @@
       headless: ( (typeof options === 'undefined') || ! ('title' in options) ),
       resizable: true,
       content: '',
+      width: 360,
+      height: 360,
+      min_width: 180,
+      min_height: 60
     }, options );
     
     var elem = $( M.templates.modal( opts ) ),
         position = {x:0, y:0};
     
+    elem.css({
+      top: ( $( window ).height() - opts.height ) / 3,
+      left: ( $( window ).width() - opts.width ) / 2,
+      width: opts.width,
+      height: opts.height
+    });
     $( opts.content ).appendTo( elem.find( '.inner' ));
     
     elem.find( '.modal-close' ).click( function( e ){
       e.preventDefault();
+      $(this).hide();
       genie( elem );
     });
     
@@ -77,7 +88,7 @@
         box_size = 360,
         w = box.width(),
         h = box.height();
-    box.children().fadeOut( 140 );
+    box.children().fadeOut( 48 );
     
     var bg_con =
       $('<div class="genie_container" />')

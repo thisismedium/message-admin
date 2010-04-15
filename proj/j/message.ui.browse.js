@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////*/
 (function(){
   
-  M.load_template( 'browser', 'browser-icon' );
+  M.load_template( 'browser', 'browser-icon', 'info' );
   
   var browse = function( opts ){
     return new bp.init( Array.prototype.slice.call( arguments ) );
@@ -59,7 +59,7 @@
         '--------------------------',
         
         ['Get Info', function(){
-          M.log('INFO!');
+          kore.get_info( this );
         }],
         ['Create New', [
           ['Page', function(){
@@ -171,9 +171,10 @@
         }
       });
       
+      var kore = this;
       li.menu( 'right', [
         ['Get Info', function(){
-          M.log(' INFO! ');
+          kore.get_info( this_item );
         }],
         ['Rename', function(){
           li.find( '.name' )[0].edit();
@@ -269,6 +270,21 @@
       
       this.container.find( '.list-item, .icon-item' )
         .removeClass( 'selected' );
+    },
+    
+    get_info: function( item ){
+      if( ! item ) return;
+      var info = [
+            [ 'Kind', item._kind ],
+            [ 'Slug', item.name ],
+            [ 'Full Path', item._path ]
+          ];
+      M.ui.modal({
+        title: 'Get Info &mdash; ' + item.title,
+        content: M.templates.info({ properties: info }),
+        width: 280,
+        height: 108
+      });
     },
     
     resize: function( size ){
