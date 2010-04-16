@@ -72,18 +72,6 @@
     db_event( 'failed' );
   }
 
-  function query( expr, success, error ){
-      return item('get', expr, success, error);
-  }
-
-  function change( changes, success, error ) {
-      console.log( changes );
-      changes = ( typeof changes === 'string' ) ?
-        changes :
-        JSON.stringify( changes );
-      return item('set', changes, success, error);
-  }
-
   // Items are fetched using a path query.  Items may be changed by
   // sending a changeset that looks like this:
   //
@@ -105,17 +93,39 @@
   // don't need to fetch the object before deleting it if you know its
   // name and the path of its parent.
   //
-  function item( type, expr, success, error ){
-    success = success || Noop;
-    error = error || Noop;
+  function query( expr, success, error ){
+      return service('get', 'item', expr, success, error);
+  }
 
-    evaluate({
-      type: type,
-      method: 'item',
-      data: expr,
-      success: function( elem, reply ) { success(expr, reply); },
-      error: function( message ) { error( expr, message ); }
-    });
+  function change( changes, success, error ) {
+      console.log( changes );
+      return service('set', 'item', changes, success, error);
+  }
+
+  // Users work the same way items do, but they aren't queryable.
+  //
+  //   list_users() -- list all users
+  //   get_user(name) -- get a user by name
+  //   change_users(changes) -- update users with a delta
+  //
+  // The change_users() delta has the same format as the item delta
+  // described above.  Users are identified by "_key" instead of by
+  // "_path".
+  //
+  // A users password is always empty.  When you change_users(), a
+  // missing or empty password means to leave the password as it is.
+  // Providing a password will change it.
+  //
+  function list_users( success, error ){
+      return get_user('', success, error);
+  }
+
+  function get_user( expr, success, error ){
+      return service('get', 'user', expr, success, error);
+  }
+
+  function change_users( changes, success, error ){
+      return service('set', 'user', changes, success, error);
   }
 
   // A schema is a JSON object that looks like this:
@@ -148,6 +158,27 @@
   }
 
   // ----- Queries ----- //
+
+  function service( type, method, expr, success, error ){
+    success = success || Noop;
+    error = error || Noop;
+
+    evaluate({
+      type: type,
+      method: method,
+      data: prepare(expr),
+      success: function( elem, reply ) { success(expr, reply); },
+      error: function( message ) { error( expr, message ); }
+    });
+  }
+
+  function prepare(data){
+      data = data || '';
+      return ( typeof data === 'string' ) ?
+        data :
+        JSON.stringify( data );
+  }
+
   function evaluate( opt ){
     send_iq({
       iq: make_iq(opt.type || 'get', opt.method, opt.data),
@@ -163,12 +194,12 @@
   function make_iq( type, method, query ) {
     return $iq({ type: type })
         .c(method, { xmlns: 'urn:M' })
-        .t(Base64.encode(query));
+        .t(query && Base64.encode(query));
   }
 
   function iq_response( iq, k ){
     var elem = iq.childNodes[0];
-    k(elem, Base64.decode(elem.textContent));
+    k(elem, elem.textContent && Base64.decode(elem.textContent));
   }
 
   function iq_error( iq, k ){
@@ -223,9 +254,9 @@
   function is_connected(){
     return db_is_connected;
   }
-  
+
   M.db = {};
-  
+
   // ----- DOM Ready ----- //
   M.ready(function(){
     connection = strophe({
@@ -240,6 +271,9 @@
     M.db.connection = connection;
     M.db.query = query;
     M.db.change = change;
+    M.db.list_users = list_users;
+    M.db.get_user = get_user;
+    M.db.change_users = change_users;
     M.db.get_schema = schema;
     M.db.listen = listen;
     M.db.unlisten = unlisten;

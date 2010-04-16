@@ -16,9 +16,9 @@
 
 ////////////////////////////////////////////////////////////*/
 (function(){
-  
+
   M.load_template( 'console', 'command' );
-  
+
   var open = false,
       drawer,
       drawer_size = 200,
@@ -235,15 +235,16 @@
 
 
   // ----- Commands ----- //
-  function prettify_result( results ){
+  function prettify_result( results, title ){
     var out = [];
+    title = title || function(d) { return d.title; };
     try {
       var data = eval( results );
       out.push( data.length + ' results.\n');
 
       for( var n = 0, t = data.length; n < t; n++ ){
         out.push( '\n' );
-        out.push( data[n].title + '\n');
+        out.push( title(data[n]) + '\n');
         for( var k in data[n] )
           if( k != 'title' )
             out.push( '  ' + k + ': ' + data[n][k] + '\n');
@@ -263,6 +264,14 @@
     });
 
   alias_command( 'query', 'q', 'Alias for `query`.' );
+
+  add_command( 'user', 'List users or show a specific user if a name is given.',
+    function( name ){
+      var title = function(u){ return u.full_name || u.name; };
+      M.db.get_user( name, function( expr, reply ){
+        output( 'user ' + name, prettify_result( reply, title ) );
+      });
+    });
 
   add_command( 'schema', 'Queries the MessageDB for a schema by name.',
     function( name ){

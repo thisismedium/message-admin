@@ -3,7 +3,7 @@
 twistd -ny demo-webserver.tac &
 twistpid="$!"
 trap "kill $twistpid" TERM INT
-python demo-db.py
+python demo-db.py $@
 
 # python demo-db.py &
 # serverpid="$$"
