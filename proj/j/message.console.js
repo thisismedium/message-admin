@@ -273,6 +273,14 @@
       });
     });
 
+  add_command( 'branch', 'List branches or show a specific branch if a name is given.',
+    function( name ){
+      var title = function(u){ return u._name; };
+      M.db.get_branch( name, function( expr, reply ){
+        output( 'branch ' + name, prettify_result( reply, title ) );
+      });
+    });
+
   add_command( 'schema', 'Queries the MessageDB for a schema by name.',
     function( name ){
       M.db.get_schema( name, function( expr, version, reply ){

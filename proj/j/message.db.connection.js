@@ -94,12 +94,12 @@
   // name and the path of its parent.
   //
   function query( expr, success, error ){
-      return service('get', 'item', expr, success, error);
+    return service('get', 'item', expr, success, error);
   }
 
   function change( changes, success, error ) {
-      console.log( changes );
-      return service('set', 'item', changes, success, error);
+    console.log( changes );
+    return service('set', 'item', changes, success, error);
   }
 
   // Users work the same way items do, but they aren't queryable.
@@ -117,15 +117,33 @@
   // Providing a password will change it.
   //
   function list_users( success, error ){
-      return get_user('', success, error);
+    return get_user('', success, error);
   }
 
   function get_user( expr, success, error ){
-      return service('get', 'user', expr, success, error);
+    return service('get', 'user', expr, success, error);
   }
 
   function change_users( changes, success, error ){
-      return service('set', 'user', changes, success, error);
+    return service('set', 'user', changes, success, error);
+  }
+
+  // Branches work the same way Users do:
+  //
+  //   list_branches() -- list all branches
+  //   get_user(name) -- get a branch by name
+  //   change_users(changes) -- update users with a delta
+  //
+  function list_branches( success, error ){
+    return get_branch('', success, error);
+  }
+
+  function get_branch( expr, success, error ){
+    return service('get', 'branch', expr, success, error);
+  }
+
+  function change_branches( changes, success, error ){
+    return service('set', 'branch', changes, success, error);
   }
 
   // A schema is a JSON object that looks like this:
@@ -274,6 +292,9 @@
     M.db.list_users = list_users;
     M.db.get_user = get_user;
     M.db.change_users = change_users;
+    M.db.list_branches = list_branches;
+    M.db.get_branch = get_branch;
+    M.db.change_branches = change_branches;
     M.db.get_schema = schema;
     M.db.listen = listen;
     M.db.unlisten = unlisten;
